@@ -1,0 +1,236 @@
+.shell {
+  display: grid;
+  min-height: 100dvh;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.sidebar {
+  display: none;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 3.5rem;
+  padding-inline: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.topBrand,
+.brand {
+  font-weight: 650;
+  letter-spacing: var(--tracking-heading);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.iconButton:hover {
+  background: color-mix(in oklab, var(--color-text) 7%, transparent);
+  color: var(--color-text);
+}
+
+/* Slim bar while a navigation is pending; the delay keeps fast navigations from flashing it */
+.progress {
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.progress[data-active='true'] {
+  opacity: 1;
+  transition-delay: 150ms;
+}
+
+.progress::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--color-accent);
+  animation: progress 1.1s var(--ease-in-out) infinite;
+}
+
+@keyframes progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress::after {
+    width: 100%;
+    animation: none;
+  }
+}
+
+.main {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-4) var(--space-8);
+}
+
+.navList {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.navLink:hover {
+  background: color-mix(in oklab, var(--color-text) 6%, transparent);
+  color: var(--color-text);
+}
+
+.navLink[aria-current='page'] {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  font-weight: 650;
+}
+
+.userText {
+  display: grid;
+  line-height: 1.25;
+}
+
+.userText small {
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+/* Narrow screens: the navigation lives in a popover sheet (no JavaScript needed to open or close it) */
+.sheet {
+  inset: 0 auto 0 0;
+  width: min(20rem, 86vw);
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: var(--space-3);
+  border: 0;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+}
+
+.sheet:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sheet::backdrop {
+  background: var(--color-scrim);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet {
+    transition: transform var(--dur-slow) var(--ease-out), overlay var(--dur-slow) allow-discrete, display var(--dur-slow) allow-discrete;
+    transform: translateX(-100%);
+  }
+  .sheet:popover-open {
+    transform: none;
+  }
+  @starting-style {
+    .sheet:popover-open {
+      transform: translateX(-100%);
+    }
+  }
+}
+
+@media (min-width: 960px) {
+  .shell {
+    grid-template-columns: 15rem minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    height: 100dvh;
+    padding: var(--space-4) var(--space-3);
+    border-right: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
+  }
+
+  .brand {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .topbar > .iconButton:first-child,
+  .topBrand {
+    display: none;
+  }
+
+  .main {
+    padding: var(--space-6) var(--space-7) var(--space-8);
+  }
+}

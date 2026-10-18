@@ -32,7 +32,8 @@ skills/<skill>/
 ├── scripts/                 palette.mjs (theme color → accessible tokens), build-presets.mjs
 │                            (assembles the presets file), screenshot.mjs, ngd-audit.mjs (project checks)
 └── assets/                  presets-shell.html (preset viewer), DESIGN.template.md,
-                             starter/ (verified React Router 8 + Cloudflare starter files)
+                             starter/ (verified React Router 8 + Cloudflare starter files),
+                             starter-panel/ (verified panel add-on: auth layout, shell, streaming, tables)
 ```
 
 `references/core/`, `scripts/` and `assets/` are identical in every skill. They are generated from [`shared/`](shared/), so each skill folder stays self-contained.

@@ -1,0 +1,29 @@
+.skeleton {
+  position: relative;
+  display: block;
+  width: var(--skeleton-w);
+  height: var(--skeleton-h);
+  overflow: hidden;
+  border-radius: var(--skeleton-r, 6px);
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-bg) 55%, transparent), transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton::after {
+    animation: shimmer 1.6s infinite;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}

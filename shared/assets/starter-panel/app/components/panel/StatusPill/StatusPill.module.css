@@ -1,0 +1,40 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.15em 0.6em;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-text) 7%, transparent);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.pill::before {
+  content: '';
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pill[data-tone='success'] {
+  background: var(--color-success-subtle);
+  color: var(--color-success-text);
+}
+
+.pill[data-tone='warning'] {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning-text);
+}
+
+.pill[data-tone='danger'] {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger-text);
+}
+
+.pill[data-tone='info'] {
+  background: var(--color-info-subtle);
+  color: var(--color-info-text);
+}

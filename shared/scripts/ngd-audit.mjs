@@ -126,6 +126,26 @@ const rawColors = cssModules.filter((f) => /(?<![\w-])#[0-9a-fA-F]{3,8}\b|rgb\(\
 if (rawColors.length) warn('Modules use color tokens, not raw values', rawColors.join(', '));
 else pass('Modules use color tokens, not raw values');
 
+// every var(--name) without a fallback is defined somewhere: a stale tokens.css or a typo silently drops the whole declaration
+const stripComments = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '');
+const definedVars = new Set();
+for (const f of [...plainCss, ...cssModules]) for (const m of stripComments(read(f)).matchAll(/(--[\w-]+)\s*:/g)) definedVars.add(m[1]);
+for (const f of sourceFiles) {
+  const t = read(f);
+  for (const m of t.matchAll(/['"](--[\w-]+)['"]\s*:/g)) definedVars.add(m[1]); // inline style={{ '--x': … }}
+  for (const m of t.matchAll(/setProperty\(\s*['"`](--[\w-]+)/g)) definedVars.add(m[1]);
+}
+const undefinedVars = new Map();
+for (const f of [...plainCss, ...cssModules]) {
+  for (const m of stripComments(read(f)).matchAll(/var\(\s*(--[\w-]+)\s*(,)?/g)) {
+    if (!m[2] && !definedVars.has(m[1])) undefinedVars.set(m[1], [...(undefinedVars.get(m[1]) ?? []), f]);
+  }
+}
+if (undefinedVars.size) {
+  const list = [...undefinedVars].slice(0, 8).map(([name, files]) => `${name} (${[...new Set(files)][0]}${files.length > 1 ? ` +${files.length - 1}` : ''})`);
+  fail('CSS variables are defined', `${list.join(', ')}: regenerate tokens.css with the current palette.mjs, or define them`);
+} else pass('CSS variables are defined');
+
 const lorem = grepFiles([...sourceFiles, ...cssModules], /lorem ipsum/i);
 if (lorem.length) fail('No lorem ipsum', lorem.join(', '));
 

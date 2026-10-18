@@ -1,6 +1,6 @@
 # Panel architecture
 
-How NGD admin and user panels are built on React Router + Cloudflare Workers: where the panel lives, authentication and authorization, data access, loading data without ever blocking the shell, mutations, real-time updates, security and caching. Panels are not indexed, so SEO gives way to speed of use: the shell appears instantly, data streams in behind skeletons, and every action gives immediate feedback.
+How NGD admin and user panels are built on React Router + Cloudflare Workers (the verified implementation of sections 1, 2, 5, 6 and 11 is in `assets/starter-panel/`): where the panel lives, authentication and authorization, data access, loading data without ever blocking the shell, mutations, real-time updates, security and caching. Panels are not indexed, so SEO gives way to speed of use: the shell appears instantly, data streams in behind skeletons, and every action gives immediate feedback.
 
 ## Contents
 1. Where the panel lives
@@ -86,6 +86,7 @@ Validate the `next` parameter before redirecting to it (relative paths only) to 
 
 - **D1** (SQLite) for app data with migrations (`wrangler d1 migrations create/apply`). A typed query layer helps: a light query builder or ORM that supports D1 (for example Drizzle or Kysely), or hand-written prepared statements in `*.server.ts` modules.
 - **External APIs** (an existing backend, a commerce platform, a CRM): call them from server-only modules with service credentials from Worker secrets; never expose tokens to the browser.
+- Keep types and constants that components need (status lists, sort keys, record types) in a shared module next to the server-only one (`customers.ts` beside `customers.server.ts`): the build refuses any client import of a `*.server.ts` module.
 - Index the columns you filter and sort by; paginate everything; select only the columns the screen shows.
 - **R2** for files (uploads, exports) with size and type checks, served through signed or authorised routes.
 - **KV** for configuration and cached reference data; **Queues** for slow or retried work (emails, exports, webhooks).

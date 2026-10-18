@@ -1,0 +1,88 @@
+.section {
+  margin-bottom: var(--space-7);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  letter-spacing: var(--tracking-heading);
+}
+
+.more {
+  color: var(--color-accent-text);
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.more:hover {
+  text-decoration: underline;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.kpi {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 6.5rem;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.kpi[data-attention] {
+  border-color: color-mix(in oklab, var(--color-warning) 55%, var(--color-border));
+}
+
+.kpiLabel {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.kpiValue {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 650;
+  letter-spacing: var(--tracking-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.activity {
+  display: grid;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.activityItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+  min-height: 3.25rem;
+  padding: var(--space-3) var(--space-4);
+}
+
+.activityItem + .activityItem {
+  border-top: 1px solid var(--color-border);
+}
+
+.time {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}

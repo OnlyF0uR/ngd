@@ -10,7 +10,7 @@ Work through the phases in order. Each one ends with something the user can see 
 | 1. Discover | interview answers → `DESIGN.md` | `references/core/discovery.md` |
 | 2. Research | keyword plan + competitor notes → `design/seo-plan.md` (panels: domain research → `design/panel-plan.md`) | `references/core/seo.md` (panels: the ngd-panel SKILL.md) |
 | 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md`; for the draft copy, form and motion idea also `copywriting.md`, `forms.md`, `motion.md` and `imagery.md` in `references/core/` |
-| 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` |
+| 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` (panels: also `assets/starter-panel/`) |
 | 5. Build | every page or screen with real content, forms, images, motion | this skill's references, plus `references/core/` forms, copywriting, imagery and motion |
 | 6. Verify | checks pass, screenshots reviewed, fixes made | `references/core/quality.md` |
 | 7. Hand over | run/deploy instructions and what's left for the user | `references/core/quality.md` |

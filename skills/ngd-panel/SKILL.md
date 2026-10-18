@@ -29,7 +29,7 @@ Work through the phases in order. Each one ends with something the user can see 
 | 1. Discover | interview answers → `DESIGN.md` | `references/core/discovery.md` |
 | 2. Research | keyword plan + competitor notes → `design/seo-plan.md` (panels: domain research → `design/panel-plan.md`) | `references/core/seo.md` (panels: the ngd-panel SKILL.md) |
 | 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md`; for the draft copy, form and motion idea also `copywriting.md`, `forms.md`, `motion.md` and `imagery.md` in `references/core/` |
-| 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` |
+| 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` (panels: also `assets/starter-panel/`) |
 | 5. Build | every page or screen with real content, forms, images, motion | this skill's references, plus `references/core/` forms, copywriting, imagery and motion |
 | 6. Verify | checks pass, screenshots reviewed, fixes made | `references/core/quality.md` |
 | 7. Hand over | run/deploy instructions and what's left for the user | `references/core/quality.md` |
@@ -126,7 +126,7 @@ Pick five that suit the users and tasks and that differ strongly (`references/co
 - **Shared panel components** (each with its own `.module.css`): `AppShell`, `SidebarNav`, `PageHeader`, `DataTable` (sorting, selection, empty, loading and error states), `FilterBar`, `Drawer` (`<dialog>`-based), `Field`/`Form` primitives, `Toast` (live region), `Skeleton`, `KpiCard`, `StatusPill`, `EmptyState`, `CommandPalette` (if in scope).
 - **Data:** shell-first loading with streamed promises and matching skeletons; URL-driven table state; `useFetcher` mutations with optimistic UI; lazy-loaded charts and editors (`references/panel-architecture.md`).
 - **Security:** a server-side permission check in every loader and action, tenant scoping, validated inputs, audit log for admin actions, rate-limited sign-in.
-- **Starter:** reuse the starter's `root.tsx` (theme script for the light/dark toggle), `global.css`, `cloudflare-context.ts` and `Button`. The public-site components (header, footer, lead form) are only needed if there is a public site.
+- **Starter:** apply the base starter (`assets/starter/`: `root.tsx` with the theme script, `global.css`, `cloudflare-context.ts`, `Button`), then the verified panel starter in `assets/starter-panel/` (its README lists the steps): the layout route with auth middleware, `noindex` and `no-store`, the app shell, a streamed dashboard with skeletons, a URL-driven table with empty states, and a sign-in placeholder. Replace its auth stub and demo data; the public-site components (header, footer, lead form) are only needed if there is a public site.
 
 ### Definition of done (in addition to `references/core/quality.md`)
 - [ ] The shell renders without waiting for data; every data region has a matching skeleton and its own error state; navigations keep the previous screen visible.

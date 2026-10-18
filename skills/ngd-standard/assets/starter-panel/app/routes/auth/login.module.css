@@ -1,0 +1,32 @@
+.page {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--space-5);
+  background: var(--color-bg-subtle);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-3);
+  width: min(100%, 26rem);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.brand {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.title {
+  font-size: var(--display-sm);
+  letter-spacing: var(--tracking-heading);
+}
+
+.text {
+  color: var(--color-text-muted);
+}
