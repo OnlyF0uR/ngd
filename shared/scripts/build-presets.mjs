@@ -4,6 +4,7 @@
  * preset can be written, checked and fixed on its own.
  *
  *   node build-presets.mjs --init design/presets/round-1 --project "Studio Name" --brand "#0f766e" [--mode light] [--lang nl]
+ *                          [--neutral-hue warm] [--tint 0.5]      (palette options are passed to palette.mjs)
  *   node build-presets.mjs design/presets/round-1        # writes design/presets/round-1.html
  *
  * The source folder (only presets.json and tokens.css are required; a preset is included as soon
@@ -50,6 +51,8 @@ function parseArgs(argv) {
     else if (a === '--mode') o.mode = next();
     else if (a === '--lang') o.lang = next();
     else if (a === '--round') o.round = Number(next());
+    else if (a === '--neutral-hue') o.neutralHue = next();
+    else if (a === '--tint') o.tint = next();
     else if (a === '--force') o.force = true;
     else if (a === '-h' || a === '--help') o.help = true;
     else if (a.startsWith('--')) throw new Error(`Unknown option ${a}`);
@@ -79,6 +82,8 @@ function init(o) {
   if (o.brand) {
     const args = [PALETTE, '--brand', o.brand, '--out', join(o.dir, 'tokens.css')];
     if (o.mode) args.push('--mode', o.mode);
+    if (o.neutralHue) args.push('--neutral-hue', o.neutralHue);
+    if (o.tint) args.push('--tint', o.tint);
     console.log(execFileSync(process.execPath, args, { encoding: 'utf8' }).trim());
   } else if (!existsSync(join(o.dir, 'tokens.css'))) {
     console.log(`next: node ${join(here, 'palette.mjs')} --brand "#hex" --out ${join(o.dir, 'tokens.css')}`);
@@ -279,7 +284,7 @@ function main() {
   const o = parseArgs(process.argv.slice(2));
   if (o.help || !o.dir) {
     console.log(
-      'Usage: node build-presets.mjs --init <dir> --project "Name" --brand "#hex" [--mode light|dark|both] [--lang en]\n' +
+      'Usage: node build-presets.mjs --init <dir> --project "Name" --brand "#hex" [--mode light|dark|both] [--lang en] [--neutral-hue warm] [--tint 0.5]\n' +
         '       node build-presets.mjs <dir>          (writes <dir>.html)',
     );
     process.exit(o.help ? 0 : 2);
