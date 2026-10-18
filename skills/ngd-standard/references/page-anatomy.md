@@ -30,7 +30,7 @@ Not every page needs every step: a strong local-service page might merge 3 and 5
 
 ## 2. Section library
 
-Each section: its job, layout variants, and what to avoid. Build each as a component in `app/components/sections/` with props for content, so pages compose them.
+Each section: its job, layout variants, and what to avoid. A section used on more than one page becomes a component in `app/components/sections/` with props for its content, so pages compose them; a one-off section stays with its route (in the route file, or in the route's folder: `app/routes/about/Story.tsx` with its own `.module.css`) until a second page needs it.
 
 **Hero.** Job: the five-second answer and the first click.
 - Variants: split (copy + visual); centred statement (type-led); full-bleed photo/video with overlaid copy (needs a scrim); product-UI hero; form-first (first question of the lead form with chips); search-first (catalogues, real estate).

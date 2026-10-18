@@ -88,7 +88,8 @@ app/
   routes/
     site-layout.tsx        layout route for public pages (header + footer)
     home.tsx + home.module.css
-    …one file (+ module) per route
+    …one file (+ module) per route; a bigger route becomes a folder with its one-off sections
+                           (routes/about/route.tsx + Story.tsx + Story.module.css)
     contact.tsx            has the lead action; never prerendered
     sitemap.ts, robots.ts  resource routes
   lib/
@@ -271,7 +272,7 @@ export const meta: Route.MetaFunction = ({ loaderData }) =>
 - **Redirect map** for migrations: a `Map` of old path to new path checked at the top of `workers/app.ts`, before React Router, answering `301`. (Old URLs are never prerendered, so they always reach the Worker.)
 - **Trailing slashes:** `html_handling: "drop-trailing-slash"` handles prerendered pages; the starter's Worker redirects `/path/` → `/path` for server-rendered routes.
 - **Canonical host** (`www` vs apex): configure a Cloudflare Redirect Rule on the zone; it runs before the Worker and also covers static assets.
-- **Preview and `workers.dev` URLs:** keep them out of search through the robots route; disable the `workers.dev` route in production if it isn't needed.
+- **Preview and `workers.dev` URLs:** the starter keeps them out of search twice: the robots route disallows every non-production host, and the Worker adds `X-Robots-Tag: noindex` to its own responses (prerendered files are served without the Worker, so robots.txt covers those). Put previews that must stay private behind Cloudflare Access. Once `routes` holds the custom domain, Wrangler turns the `workers.dev` address off by default (`workers_dev` defaults to false when routes exist, and version preview URLs follow it); set `"preview_urls": true` if you still want preview URLs for testing.
 
 ## 12. Caching and response headers
 

@@ -32,7 +32,7 @@ Before proposing a sitemap or presets, work out what *this kind* of business nee
 - **Pages:** home, treatments/complaints (one page per complaint or treatment, written around the patient's problem), practitioners (photos, qualifications), prices and insurance/reimbursement, first-visit guide ("what to expect"), locations and hours, contact/booking, FAQ.
 - **Sections:** symptom-led entry ("Where does it hurt?" chips that lead to the right page or form step); calm, warm photography of the real practice; practitioner cards; reimbursement/price table; reviews; first-visit timeline.
 - **Trust:** registrations and memberships, real practitioners with credentials, clear privacy handling, accessibility of the premises.
-- **Schema:** `MedicalClinic`, `Dentist`, `Physician`, `HealthAndBeautyBusiness`, `DaySpa`, `ExerciseGym`; practitioner `Person` with credentials where appropriate.
+- **Schema:** the most specific `LocalBusiness` type that fits: `Physiotherapy`, `Dentist`, `MedicalClinic`, `Physician`, `Optician`, `HealthAndBeautyBusiness`, `BeautySalon`, `DaySpa`, `ExerciseGym`; practitioner `Person` with credentials where appropriate.
 - **SEO angle:** complaint + treatment + location; careful, accurate health content (E-E-A-T matters a lot for health topics).
 - **Mistakes:** promising outcomes (health claims are regulated in many countries); before/after imagery that breaks rules; stock models instead of the real team; an intake form that asks for medical details before establishing trust (collect sensitive data only where necessary and secured).
 

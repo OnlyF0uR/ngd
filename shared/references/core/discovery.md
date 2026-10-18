@@ -14,11 +14,12 @@ The interview decides most of the outcome. Its job: learn enough to produce five
 ## 1. Ground rules
 
 - **Read before you ask.** Pull everything you can from the request, attachments, an existing repo, an existing website (fetch it), the user's brand assets and any `DESIGN.md` from an earlier session. Ask only for what is still missing, and play back what you inferred ("I'm assuming the site is Dutch-only — correct me if not") so the user can correct it in one line.
-- **Rounds, not a drip.** Three rounds, each with about six questions or fewer; a short fourth round is fine for skill-specific details (a shop's payments and shipping, a panel's roles). Fewer rounds when the request is detailed. One question per message wastes the user's time; twenty questions in one message overwhelms them.
+- **Rounds, not a drip.** Three rounds, each with about six numbered questions or fewer; a short fourth round is fine for skill-specific details (a shop's payments and shipping, a panel's roles). Fewer rounds when the request is detailed. One question per message wastes the user's time; twenty questions in one message overwhelms them. The limit is about the user's effort, so group related points under one number ("Leads: what do you need to know before replying, and do you use a booking tool?") rather than dropping must-knows.
 - **Ask what only the user can answer; default the rest.** Always ask: the business and goal (round 1), the theme color, images and where they come from, entrance and scroll animations, and the skill's must-know facts (marked in each SKILL.md). Everything with a sensible default (analytics, legal pages, form of address, density, deployment details) goes into the playback as an assumption the user can correct in one line, instead of being asked.
-- **Every question has a recommended default**, so "go with your suggestions" is a complete answer. When the user says "you decide", decide, and log it under *Assumptions to confirm* in DESIGN.md.
+- **Every choice question has a recommended default**, so "go with your suggestions" is a complete answer. Open questions (round 1: what the business does, what makes it different) have no default; ask them plainly and accept short answers. When the user says "you decide", decide, and log it under *Assumptions to confirm* in DESIGN.md.
 - **Use a structured question tool when you have one** (for example AskUserQuestion: up to 4 questions per call, 2–4 options each, put your recommendation first and label it "(Recommended)"; the user can always type their own answer). Use plain text for open questions (what the business does, what makes it different) — offering options there puts words in the user's mouth.
-- **Be honest about capabilities.** Offer AI image generation only if an image-generation tool is actually connected, and name it. Promise search-volume numbers only if you have an SEO data source; otherwise say volumes will be estimates.
+- **Be honest about capabilities.** Offer AI image generation only if an image-generation tool is actually connected, and name it; if it costs credits, say so and never generate without the user's go-ahead on the estimate. Promise search-volume numbers only if you have an SEO data source; otherwise say volumes will be estimates.
+- **When something the user named can't be found** (a competitor, a website, a file), say so in the playback, use the closest real match if there is an obvious one, and mark it under *Assumptions to confirm*.
 - **One interview for several surfaces.** If more than one ngd skill is active, merge their extra questions into these rounds.
 - **Explain why when it helps the user answer.** "Where should form submissions go? (So leads don't end up in a mailbox nobody reads.)"
 
@@ -41,10 +42,10 @@ The user either gives a theme color or picks one of three you propose.
    **If you found a color yourself** (logo SVG, brand guidelines, the current site), confirm it ("I'll use #0F766E from your logo as the theme color") and offer the three-option route as an alternative.
 2. **Otherwise propose three candidates**, each with a name, hex, one-line rationale and the feeling it creates:
    - **A — Category-native, refined.** The color the category is trusted for, tuned to look premium rather than default (wellness → a deep sage, not stock green).
-   - **B — Differentiating.** A color none of the main competitors use, so the brand is recognisable in a row of search results.
+   - **B — Differentiating.** A color none of the main competitors use, so the brand is recognisable in a row of search results. Take a quick look at the competitors from round 1 for this (homepage and logo colors, a minute's work; the full competitor scan comes in research).
    - **C — Bold.** Memorable and high-energy, or unusually premium (a deep ink, an electric hue). More risk, more recall.
    Base the candidates on round 1: industry, audience, personality hints, competitors' colors. Avoid generic "SaaS indigo" unless it is clearly right.
-3. **Validate before showing.** From the project folder, run `node <skill-dir>/scripts/palette.mjs --candidates "#a,#b,#c" --preview design/theme-options.html`. If a candidate cannot produce accessible buttons and text in both light and dark mode, adjust it or swap it. Read the notes: a light brand color (yellow, lime, sky) becomes a background field with dark buttons; a mid-tone color may get a slightly deeper shade for buttons. Tell the user in plain words when that applies.
+3. **Validate before showing.** From the project folder, run `node <skill-dir>/scripts/palette.mjs --candidates "#a,#b,#c" --labels "A · Name|B · Name|C · Name" --preview design/theme-options.html`. If a candidate cannot produce accessible buttons and text in both light and dark mode, adjust it or swap it. Read the notes: a light brand color (yellow, lime, sky) becomes a background field with dark buttons; a mid-tone color may get a slightly deeper shade for buttons. Tell the user in plain words when that applies. The neutrals (page backgrounds, borders, grey text) lean slightly toward the brand hue; when the personality calls for warm paper behind a cool brand color (or the reverse), add `--neutral-hue warm` or `cool`.
 4. **Show them visually when you can** (open or publish the preview HTML; otherwise list name + hex + rationale). Ask: "Pick A, B or C — or give me your own color (a hex code, or a description like 'deep forest green')." Convert descriptions to a hex and confirm.
 
 ### The other look-and-feel questions
@@ -82,7 +83,7 @@ Mention that motion never delays content and always respects the "reduce motion"
 - **Accessibility needs** beyond WCAG 2.2 AA (public sector, older audiences), and **deadline/launch date** if it changes priorities.
 
 ## 5. Skill-specific questions
-Each ngd skill lists extra questions in its SKILL.md (webstore: catalog, payments, shipping, markets; panel: users, roles, data sources, key actions; standard: site type specifics). Fold them into rounds 1 and 3.
+Each ngd skill lists extra questions in its SKILL.md, split into **Ask** (must-knows: a shop's catalogue, payments and shipping; a panel's users, roles and data; a site's services and lead qualification) and **Assume and state in the playback** (sensible defaults the user corrects in one line). Merge the ask items into the rounds next to the related core question, and add the assumptions to the playback.
 
 ## 6. Writing DESIGN.md and playing it back
 
@@ -92,18 +93,20 @@ After the last round, play back a compact summary (8–12 lines: audience, goal,
 
 ## 7. Example of a good round
 
-> Thanks — I have a clear picture of the clinic. Two quick rounds and I can show you designs.
+An example of the format only; derive your own candidates, defaults and wording from the brief in front of you.
+
+> Thanks, that gives me a clear picture of the firm. Two quick rounds and I can show you designs.
 >
 > **Look & feel**
-> 1. Theme color — your logo has no strong color, so here are three (preview: design/theme-options.html):
->    A. Sage #4F7A65 — calm and clinical-but-warm, what patients expect from care
->    B. Clay #B5573A — none of the three local competitors use warm tones; feels personal
->    C. Ink blue #1F3A8A — confident and premium, reads as "specialist"
+> 1. Theme color: your logo is black only, so here are three (preview: design/theme-options.html):
+>    A. Harbour navy #1D2B4F: the trust color clients expect from a law firm, tuned deeper than the usual corporate blue
+>    B. Oxblood #6B1F2A: none of the four firms you compete with use a warm color; it reads as personal and established
+>    C. Saffron #D99A0B: bold and approachable, the opposite of "stuffy lawyer"; a higher-risk choice
 >    Or give me your own.
-> 2. Light, dark or both? *(Recommended: light — fits health, easiest to read for older patients)*
-> 3. Personality — pick up to two: calm & premium · warm & friendly · precise & technical · editorial & refined *(Recommended: calm & premium + warm & friendly)*
+> 2. Light, dark or both? *(Recommended: light. Clients read long pages about their situation, often on a phone, and dark text on a light page is easiest for long reading.)*
+> 3. Personality, pick up to two: calm & premium · warm & friendly · precise & technical · editorial & refined *(Recommended: editorial & refined + warm & friendly)*
 >
 > **Images & motion**
-> 4. Will the site use photos? You mentioned photos of the practice — where can I find them? I can also use stock photos for the treatment pages. *(No image generator is connected here, so AI images aren't an option right now.)*
+> 4. Will the site use photos? You mentioned team portraits; where can I find them? Stock photos would work for the practice-area pages. *(No image generator is connected here, so AI images aren't an option right now.)*
 > 5. Entrance animations: none / subtle / expressive *(Recommended: subtle)*
 > 6. Scroll animations: none / subtle reveals / storytelling *(Recommended: subtle reveals)*

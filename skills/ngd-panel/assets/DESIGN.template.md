@@ -47,6 +47,25 @@
 - **Lead routing:** where submissions go (email / CRM webhook / D1 / Slack)
 - **Contact channels:** form / phone / WhatsApp / booking link / email
 - **Form steps:** …
+(For a store the main conversion is the checkout; record secondary ones here, such as newsletter or subscription sign-ups.)
+
+## Store (webstore only; delete otherwise)
+- **Commerce backend:** … (why, and the main trade-off)
+- **Catalogue:** products and variants, how often it changes, where it is managed, who runs the store
+- **Payments and markets:** countries, currencies, languages, payment methods
+- **Shipping and returns:** carriers, zones, costs, free-shipping threshold, cut-off time, return window and costs
+- **Taxes:** VAT setup (who calculates it), rates per product type
+- **Subscriptions, promotions, reviews:** …
+- **Product rules:** food information, age limits, excise, safety information … (to be checked by the user; not legal advice)
+
+## Panel (panel only; delete otherwise)
+- **Users and roles:** who, how many, what each role may see and do
+- **Sign-in:** provider, MFA, session policy
+- **Data sources:** APIs and databases, volumes, freshness
+- **Objects and top tasks:** … (they define the navigation and the dashboard)
+- **KPIs:** … compared with …
+- **Notifications, exports, audit:** …
+- **Devices and density:** …
 
 ## Technical
 - **Stack:** React Router {version} (framework mode, SSR) on Cloudflare Workers
@@ -54,8 +73,6 @@
 - **Bindings and secrets:** (KV / D1 / R2 / Turnstile / email): names only, never values
 - **Analytics and consent:** …
 - **Legal pages:** …
-- **Webstore** (if applicable): commerce backend, payments, markets, shipping
-- **Panel** (if applicable): auth, roles, data sources, real-time needs
 
 ## Assumptions to confirm
 - …

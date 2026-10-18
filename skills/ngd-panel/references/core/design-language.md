@@ -88,14 +88,15 @@ Use fluid sizes with `clamp()` so type scales smoothly between 390px and 1440px.
 All colors come from `app/styles/tokens.css`, generated from the theme color by `scripts/palette.mjs`. Components use **semantic tokens** (`--color-bg`, `--color-text`, `--color-accent`, `--color-on-accent`, `--color-accent-text`, `--color-border`, `--color-success` …), never raw hex values and rarely the ramps directly. Then light/dark switching, re-theming and contrast all stay correct.
 
 - **Primary CTA:** `--color-accent` with `--color-on-accent`. One primary CTA style across the whole site, so visitors learn it.
-- **Secondary CTA:** neutral — outline (`--color-border-strong`) or ghost/text with an arrow.
+- **Secondary CTA:** neutral — outline (`--color-border-input`, which keeps the 3:1 boundary contrast) or ghost/text with an arrow.
 - **Links in body copy:** `--color-accent-text`, underlined (offset 0.2em, thickness 1px → 2px on hover). Underlines help people with color-vision deficiencies.
-- **Brand moments:** a full section on brand color, or on a deep dark surface with the accent glowing. Use one or two per page, to pace the story.
+- **Brand moments:** a full section on brand color, or on a deep dark surface with the accent glowing. Use one or two per page, to pace the story. On a brand-colored band, check that the CTA still stands out from the band (about 3:1 between button and band); if not, use an inverted button (light on dark, or ink on a light band).
 - **Dark bands inside a light page:** wrap the section in `data-theme="dark"` so all tokens flip locally (and vice versa).
 - **Text on photos:** always over a scrim (a gradient from transparent to `rgb(0 0 0 / 0.55)` behind the text area) and check contrast.
 - **Gradients:** subtle and intentional — same hue ±10% lightness, or theme to an analogous hue (±30°). Glows and mesh gradients belong on dark surfaces at low opacity. No rainbow gradients unless they are the brand.
 - **Status colors** (success, warning, danger, info) only for status, never decoration.
 - A very light theme color (yellow, lime, sky): use it as a background field, with near-black buttons on top. palette.mjs notes when that applies.
+- **Neutrals carry the mood too:** by default they lean slightly toward the brand hue. A cool brand on warm paper (teal or green with cream backgrounds) suits warm, friendly or editorial personalities: generate the tokens with `--neutral-hue warm` (or `cool` for the reverse) instead of editing the output.
 
 ## 5. Layout, spacing and rhythm
 
@@ -122,7 +123,7 @@ Pick one **shape language** per project and apply it everywhere (buttons, cards,
 | Precise | 6 / 10 / 14 / 20 px | 8–10px radius or small pill | technical, efficient, trustworthy |
 | Editorial | 0 / 2 / 4 / 8 px | square, sometimes with a circular icon button attached | refined, magazine, luxury |
 
-- **Borders:** 1px `--color-border` hairlines separate sections and outline cards; `--color-border-strong` for inputs. On dark surfaces borders do the job shadows can't.
+- **Borders:** 1px `--color-border` hairlines separate sections and outline cards. Form controls (inputs, selects, checkboxes, choice chips) use `--color-border-input`, the subtlest neutral with 3:1 contrast against the page, because people must be able to see where to click and type. On dark surfaces borders do the job shadows can't.
 - **Elevation:**
   ```css
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);

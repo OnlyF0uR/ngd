@@ -28,7 +28,7 @@ Work through the phases in order. Each one ends with something the user can see 
 | 0. Orient | what exists, which tools and environment you have, which ngd skills apply | this section |
 | 1. Discover | interview answers → `DESIGN.md` | `references/core/discovery.md` |
 | 2. Research | keyword plan + competitor notes → `design/seo-plan.md` | `references/core/seo.md` |
-| 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md` |
+| 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md`; for the draft copy, form and motion idea also `copywriting.md`, `forms.md`, `motion.md` and `imagery.md` in `references/core/` |
 | 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` |
 | 5. Build | every page or screen with real content, forms, images, motion | this skill's references, plus `references/core/` forms, copywriting, imagery and motion |
 | 6. Verify | checks pass, screenshots reviewed, fixes made | `references/core/quality.md` |
@@ -50,10 +50,10 @@ Work through the phases in order. Each one ends with something the user can see 
 Run the interview in `references/core/discovery.md`, adding this skill's extra questions (below): three short rounds (a fourth for type-specific details if needed), nothing you could infer, and a recommended default for every question. The theme color either comes from the user or is picked from three options you propose and validate with `node <skill-dir>/scripts/palette.mjs --candidates …`. Ask about images (provided, generated if an image tool is connected, stock, or none, and where to find them) and, separately, entrance and scroll animations. Create `DESIGN.md` from `assets/DESIGN.template.md` and play back a short summary with your assumptions.
 
 ### Phase 2: research
-For anything that will be indexed, research keywords for the niche, location and language, scan competitors, and map one keyword cluster to each page in `design/seo-plan.md` (`references/core/seo.md`). Share the sitemap and top keywords in a few lines, because it may change what gets built. Panels skip keyword research but still research the domain (typical entities, workflows, metrics).
+For anything that will be indexed, research keywords for the niche, location and language, scan competitors, and map one keyword cluster to each page in `design/seo-plan.md` (`references/core/seo.md`). Share the sitemap and top keywords in a few lines, because it may change what gets built. Then continue straight to the presets; wait for a reply only when a finding needs the user's decision (the site's language, a page or market they didn't plan for). Panels skip keyword research but still research the domain (typical entities, workflows, metrics).
 
 ### Phase 3: five skeleton presets
-Build five clearly different directions in ONE file, `design/presets/round-1.html`, from `assets/presets-shell.html`, one preset at a time. Use real draft copy and the generated tokens, check the file with `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets`, show it, and ask the user to pick one, mix, tweak, or request five more (`references/core/presets.md`). Write no production code before a direction is chosen. The choice is the user's, and building early wastes their time if they choose differently.
+Build five clearly different directions in ONE file, `design/presets/round-1.html`, one preset at a time: write each as small files in `design/presets/round-1/` and assemble them with `node <skill-dir>/scripts/build-presets.mjs design/presets/round-1`. Use real draft copy and the generated tokens, check the file with `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets` and look at the screenshots, then show it and ask the user to pick one, mix, tweak, or request five more (`references/core/presets.md`). Write no production code before a direction is chosen. The choice is the user's, and building early wastes their time if they choose differently.
 
 ### Phase 4: foundation
 Scaffold the latest React Router (framework mode, SSR) on Cloudflare Workers, or upgrade the existing project. Apply the verified starter in `assets/starter/`, generate `app/styles/tokens.css` with `node <skill-dir>/scripts/palette.mjs`, then set up fonts, the small `global.css`, the layout shell, UI primitives and SEO plumbing (`references/core/architecture.md`). Reproduce the chosen preset faithfully: same typography, spacing rhythm, shape language and signature details.
@@ -72,7 +72,7 @@ The ngd skills (**ngd-standard** for landing pages and content sites, **ngd-webs
 - Load every relevant ngd skill and run this workflow **once**: one interview with the extra questions merged, one `DESIGN.md` with a section per surface, one research pass covering all indexed pages, one project and one design system.
 - **Presets:** start with the public surface (webstore or standard), because it defines the brand. Once it's chosen, run a second round of five presets for the panel. They inherit the chosen tokens and typography and vary the app-shell structure and density, and they can be lighter (shell, dashboard, one list). For standard plus webstore, one round whose presets show both a content page and the shop views.
 - **Build order:** shared foundation, then the public surface, then the panel.
-- If a request clearly needs an ngd skill that isn't installed, say so and apply the closest guidance from the core references.
+- The sibling skills sit next to this one (`<skill-dir>/../ngd-panel/SKILL.md` and so on). If a request needs one that isn't loaded, read its SKILL.md from there; if it isn't installed at all, say so and apply the closest guidance from the core references.
 
 ### When guidance conflicts
 1. The user's explicit answers and instructions.
@@ -90,18 +90,20 @@ Theme color, color mode, fonts, motion level and imagery are always the user's d
 - **Presets (phase 3):** if a public site or store is part of the project, its chosen direction comes first; the panel presets inherit its tokens and typography and vary the shell structure, density and component styling.
 
 ### Extra discovery questions
-Fold these into the interview rounds (skip what you already know):
+Merge these into the core rounds; a short fourth round for roles and data is fine. Skip whatever the request already answers. For a panel, the theme color usually comes from the public site; ask about it only when there is none.
+
+**Ask:**
 - **Who uses it:** internal admins, customers, or both? How many users, which roles, and what may each role see and do?
 - **Sign-in:** existing identity provider or SSO? Social login, email codes or passwords? MFA for admins? For a small internal team, suggest Cloudflare Access (no auth code to maintain).
 - **Data:** where does it come from (an existing API or database, a commerce platform, D1 built for this panel)? How much (rows) and how fresh (real-time needed)?
-- **Objects and top tasks:** the 3–5 things people do most. They become the navigation and the dashboard's "needs attention" area.
-- **Numbers that matter:** which KPIs, compared with which period?
-- **Organisations or teams** (multi-tenant)? Invitations and roles per team?
-- **Notifications, exports and audit:** email or in-app notifications, CSV/PDF exports, an audit trail, data export and deletion (GDPR)?
+- **Objects and top tasks:** the 3–5 things people do most. They become the navigation and the dashboard's "needs attention" area. Ask with the numbers that matter: which KPIs, compared with which period?
 - **Devices:** mostly desktop, or also on the phone (which tasks)?
-- **Density and mode:** comfortable or compact; light, dark or both (often both).
-- **Brand:** identical to the public site, or calmer and more neutral?
 
+**Assume and state in the playback** (the user corrects in one line):
+- **Organisations or teams:** a single organisation unless they mentioned customers' teams or invitations.
+- **Notifications, exports and audit:** email for the events that need action, CSV export on every list, an audit trail of admin changes, data export and deletion on request (GDPR).
+- **Density and mode:** comfortable density (compact for data-heavy internal tools); light and dark following the system setting.
+- **Brand:** the public site's tokens and typography, applied more calmly.
 ### Read before designing and building
 - `references/panel-ux.md`: app shell, navigation, page anatomy, dashboards, tables, detail views, forms, feedback, empty states, charts, settings, user vs admin panels, density, keyboard and command palette, accessibility, mobile.
 - `references/panel-architecture.md`: where the panel lives, authentication options, authorization and tenancy, data access, the shell-first streaming pattern with skeletons, URL-driven tables, mutations with optimistic UI, real-time, errors, security, no-index/no-cache, testing.
@@ -115,7 +117,7 @@ Pick five that suit the users and tasks and that differ strongly (`references/co
 5. **Bento Overview:** rounded inset surfaces and a dashboard of widgets in a bento grid, warm and visual. Suits consumer-facing apps and analytics.
 6. **Dense Workbench:** compact tables, a filter bar with saved views and multiple panes. Suits power users and back-office operations.
 
-**What each preset shows:** the app shell (desktop sidebar or top nav, plus the mobile navigation), the dashboard (attention area, KPI cards, a chart placeholder, recent activity), and a list view (toolbar with search and filter chips, a table with status pills and a selected row, an open detail drawer). Include one **skeleton loading state** and one **empty state** somewhere in each preset, so the user sees how waiting and starting feel. Use realistic domain data from the brief, not "Lorem" or "Item 1".
+**What each preset shows:** the app shell (desktop sidebar or top nav, plus the mobile navigation), the dashboard (attention area, KPI cards, a chart placeholder, recent activity), and a list view (toolbar with search and filter chips, a table with status pills and a selected row, an open detail drawer). Include one **skeleton loading state** and one **empty state** somewhere in each preset, so the user sees how waiting and starting feel. Show each screen as its own part (`<div class="ngd-part" data-part="Installations list"></div>` before it), so the screenshot script captures every screen. Use realistic domain data from the brief, not "Lorem" or "Item 1".
 
 ### Build notes
 - **Structure:** a panel layout route with auth middleware, `noindex` and `private, no-store` headers, and the shell. Each page follows the page anatomy (header, toolbar, content, optional drawer).

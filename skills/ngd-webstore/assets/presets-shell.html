@@ -1,14 +1,17 @@
 <!doctype html>
 <!--
-  NGD preset shell. Copy to design/presets/round-<n>.html and fill in:
-    1. <title> and the .brand-name text in the toolbar
-    2. <style id="tokens">  → paste the output of: node scripts/palette.mjs --brand "#hex"
-    3. <link> tags for the preset fonts (only the families/weights you use)
-    4. <style id="preset-styles"> → one nested block per preset, scoped by its id (#p1 { ... })
-    5. five <section class="preset"> blocks (and their <template class="notes">)
-  Everything else (switcher, viewport toggle, theme toggle, notes drawer, overview, keyboard
-  shortcuts, placeholders, icon sprite) is ready to use. Keep the file self-contained.
+  NGD presets shell: the viewer for five design directions in one file.
+
+  Recommended: don't fill this file by hand. Write each preset as small files in
+  design/presets/round-<n>/ and assemble them with
+      node <skill-dir>/scripts/build-presets.mjs design/presets/round-<n>
+  (references/core/presets.md, section 3, describes the folder).
+
+  Filling it by hand also works. The fill points are marked with ngd: comments
+  (fonts, tokens, styles, symbols, presets start/end, scripts); also set the page
+  title, the html lang attribute and the project name in the toolbar.
   Presets respond to the frame width with container queries: @container page (width >= 900px) { ... }
+  Viewer classes start with "ngd-"; don't use them inside presets.
   Icon paths adapted from Feather Icons (MIT).
 -->
 <html lang="en">
@@ -16,11 +19,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Project name: design presets, round 1</title>
-<!-- Fonts for the presets, e.g.:
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet"> -->
+<!-- ngd:fonts (font stylesheet links for the presets; only the families and weights you use) -->
 <style id="tokens">
-/* Paste palette.mjs output here. These fallbacks only exist so the empty shell renders. */
+/* ngd:tokens: replace with palette.mjs output. ngd:fallback-tokens (these only exist so the empty shell renders) */
 :root { color-scheme: light; --color-bg: #fdfdfd; --color-bg-subtle: #f6f6f5; --color-surface: #fdfdfd; --color-surface-raised: #fff;
   --color-text: #161616; --color-text-muted: #5f5f5f; --color-text-subtle: #7b7b7b; --color-border: #e5e5e3; --color-border-strong: #d2d2cf;
   --color-accent: #4f46e5; --color-accent-hover: #4338ca; --color-on-accent: #fff; --color-accent-subtle: #f1f0ff; --color-accent-text: #4338ca; --color-focus: #4338ca; }
@@ -34,54 +35,56 @@
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: #e9e9e7; color: #161616; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   body[data-chrome="dark"] { background: #1a1a1a; }
-  .bar { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 12px;
+  .ngd-bar { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 12px;
     background: rgb(17 17 17 / 0.94); color: #f2f2f2; backdrop-filter: blur(12px); font-size: 13px; }
-  .bar .brand-name { font-weight: 600; white-space: nowrap; }
-  .bar .round { color: #9a9a9a; white-space: nowrap; }
-  .bar .group { display: flex; gap: 2px; padding: 2px; border-radius: 10px; background: rgb(255 255 255 / 0.08); }
-  .bar .spacer { flex: 1; }
-  .bar button { appearance: none; border: 0; border-radius: 8px; padding: 6px 10px; background: transparent; color: inherit; font: inherit; cursor: pointer; white-space: nowrap; }
-  .bar button:hover { background: rgb(255 255 255 / 0.1); }
-  .bar button[aria-pressed="true"], .bar button[aria-selected="true"] { background: #f2f2f2; color: #111; }
-  .bar button:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
-  .bar kbd { font: 11px ui-monospace, monospace; opacity: 0.55; margin-left: 4px; }
-  .tabs button .num { font-weight: 700; margin-right: 4px; }
-  .hint { padding: 10px 16px; text-align: center; color: #666; font-size: 12.5px; }
-  body[data-chrome="dark"] .hint { color: #999; }
+  .ngd-bar .ngd-brand { font-weight: 600; white-space: nowrap; }
+  .ngd-bar .ngd-round { color: #9a9a9a; white-space: nowrap; }
+  .ngd-bar .ngd-group { display: flex; gap: 2px; padding: 2px; border-radius: 10px; background: rgb(255 255 255 / 0.08); }
+  .ngd-bar .ngd-group[hidden] { display: none; }
+  .ngd-bar .ngd-spacer { flex: 1; }
+  .ngd-bar button { appearance: none; border: 0; border-radius: 8px; padding: 6px 10px; background: transparent; color: inherit; font: inherit; cursor: pointer; white-space: nowrap; }
+  .ngd-bar button:hover { background: rgb(255 255 255 / 0.1); }
+  .ngd-bar button[aria-pressed="true"], .ngd-bar button[aria-selected="true"] { background: #f2f2f2; color: #111; }
+  .ngd-bar button:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
+  .ngd-bar kbd { font: 11px ui-monospace, monospace; opacity: 0.55; margin-left: 4px; }
+  .ngd-tabs button .ngd-num { font-weight: 700; margin-right: 4px; }
+  .ngd-hint { padding: 10px 16px; text-align: center; color: #666; font-size: 12.5px; }
+  body[data-chrome="dark"] .ngd-hint { color: #999; }
 
-  .stage { padding: 20px 16px 48px; }
-  .preset { display: none; }
-  .preset.is-active { display: block; }
-  .frame { container: page / inline-size; width: 100%; margin: 0 auto; background: var(--color-bg); color: var(--color-text);
+  .ngd-stage { padding: 20px 16px 48px; }
+  .ngd-preset { display: none; }
+  .ngd-preset.is-active { display: block; }
+  .ngd-frame { container: page / inline-size; width: 100%; margin: 0 auto; background: var(--color-bg); color: var(--color-text);
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 12px 40px -12px rgb(0 0 0 / 0.25); overflow: clip; transition: width 0.25s ease; }
-  body[data-view="tablet"] .frame { width: 820px; border-radius: 18px; }
-  body[data-view="mobile"] .frame { width: 390px; border-radius: 28px; }
+  body[data-view="tablet"] .ngd-frame { width: 820px; border-radius: 18px; }
+  body[data-view="mobile"] .ngd-frame { width: 390px; border-radius: 28px; }
 
   /* overview: all presets as scaled first-viewport cards */
-  body[data-view="overview"] .stage { display: grid; grid-template-columns: repeat(auto-fill, minmax(432px, 1fr)); gap: 20px; }
-  body[data-view="overview"] .preset { display: block; cursor: pointer; }
-  body[data-view="overview"] .preset .frame { width: 1440px; height: 900px; zoom: 0.3; pointer-events: none; border-radius: 30px; }
-  body[data-view="overview"] .preset::after { content: attr(data-index) "  " attr(data-name); display: block; margin-top: 8px; font-weight: 600; }
-  body[data-view="overview"] .preset:hover .frame { outline: 6px solid #8ab4ff; }
+  body[data-view="overview"] .ngd-stage { display: grid; grid-template-columns: repeat(auto-fill, minmax(432px, 1fr)); gap: 20px; }
+  body[data-view="overview"] .ngd-preset { display: block; cursor: pointer; }
+  body[data-view="overview"] .ngd-preset .ngd-frame { width: 1440px; height: 900px; zoom: 0.3; pointer-events: none; border-radius: 30px; }
+  body[data-view="overview"] .ngd-preset::after { content: attr(data-index) "  " attr(data-name); display: block; margin-top: 8px; font-weight: 600; }
+  body[data-view="overview"] .ngd-preset:hover .ngd-frame { outline: 6px solid #8ab4ff; }
 
-  .notes-panel { position: fixed; z-index: 120; top: 56px; right: 12px; width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 72px); overflow: auto;
+  .ngd-notes { position: fixed; z-index: 120; top: 56px; right: 12px; width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 72px); overflow: auto;
     padding: 18px 20px; border-radius: 14px; background: #fff; color: #161616; box-shadow: 0 20px 60px -10px rgb(0 0 0 / 0.35); font-size: 13.5px; }
-  .notes-panel[hidden] { display: none; }
-  .notes-panel h2 { margin: 0 0 4px; font-size: 17px; }
-  .notes-panel p, .notes-panel li { color: #3f3f3f; }
-  .notes-panel dt { margin-top: 10px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: #777; }
-  .notes-panel dd { margin: 2px 0 0; }
+  .ngd-notes[hidden] { display: none; }
+  .ngd-notes h2 { margin: 0 0 4px; font-size: 17px; }
+  .ngd-notes p, .ngd-notes li { color: #3f3f3f; }
+  .ngd-notes dt { margin-top: 10px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: #777; }
+  .ngd-notes dd { margin: 2px 0 0; }
 
   @media (max-width: 860px) {
-    body[data-view="tablet"] .frame { width: 100%; }
-    .bar kbd { display: none; }
+    body[data-view="tablet"] .ngd-frame { width: 100%; }
+    .ngd-bar kbd { display: none; }
   }
 
-  /* ---------- helpers presets may use (inside .frame) ---------- */
-  .frame img, .frame svg, .frame video { display: block; max-width: 100%; }
-  .frame button, .frame input, .frame select, .frame textarea { font: inherit; color: inherit; }
-  .frame :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
-  .frame [data-theme] { background: var(--color-bg); color: var(--color-text); }
+  /* ---------- helpers presets may use (inside .ngd-frame) ---------- */
+  .ngd-frame img, .ngd-frame svg, .ngd-frame video { display: block; max-width: 100%; }
+  .ngd-frame button, .ngd-frame input, .ngd-frame select, .ngd-frame textarea { font: inherit; color: inherit; }
+  .ngd-frame :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+  /* Sticky elements inside a preset sit below the viewer toolbar: position: sticky; top: var(--ngd-top, 0px); */
+  .ngd-frame [data-theme] { background: var(--color-bg); color: var(--color-text); }
   .i { width: 1.25em; height: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 
   /* Image placeholder: say what the real image will show. <div class="ph" style="aspect-ratio: 4/3"><span>Photo: …</span></div> */
@@ -98,13 +101,21 @@
   .ph-logo { display: inline-grid; place-items: center; height: 28px; padding: 0 14px; border-radius: 6px; font: 700 12px/1 system-ui, sans-serif;
     letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-subtle); background: color-mix(in oklab, var(--color-text) 6%, transparent); }
   .skel { display: block; height: 0.8em; border-radius: 6px; background: color-mix(in oklab, var(--color-text) 9%, transparent); }
+  /* A number or fact still to be confirmed (rating, count, price): <span class="tbd" title="To be confirmed">4.8</span> */
+  .tbd { text-decoration: underline dotted; text-decoration-color: color-mix(in oklab, currentColor 60%, transparent); text-underline-offset: 3px; cursor: help; }
+  /* A second page in the same preset (product page, detail screen); screenshot.mjs captures each part separately:
+     <div class="ngd-part" data-part="Product page"></div> */
+  .ngd-part { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 20px; background: #161616; color: #f2f2f2;
+    font: 600 11.5px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+  .ngd-part::before { content: attr(data-part); }
+  .ngd-part::after { content: ""; flex: 1; height: 1px; background: rgb(255 255 255 / 0.25); }
 
   @media (prefers-reduced-motion: reduce) {
-    .frame *, .frame *::before, .frame *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    .ngd-frame *, .ngd-frame *::before, .ngd-frame *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 </style>
 <style id="preset-styles">
-/* One nested block per preset. Respond to the frame, not the window:
+/* ngd:styles: one nested block per preset. Respond to the frame, not the window:
 #p1 {
   font-family: "Inter Tight", system-ui, sans-serif;
   .hero { display: grid; gap: 32px; padding: 72px 20px; }
@@ -162,33 +173,35 @@
   <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
   <symbol id="i-command" viewBox="0 0 24 24"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 0 0 0-6z"/></symbol>
   <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+  <!-- ngd:symbols -->
 </svg>
 
-<header class="bar" role="toolbar" aria-label="Preset viewer">
-  <span class="brand-name">Project name</span>
-  <span class="round">Round 1</span>
-  <div class="group tabs" role="tablist" aria-label="Presets"></div>
-  <span class="spacer"></span>
-  <div class="group" aria-label="Viewport">
+<div class="ngd-bar" role="toolbar" aria-label="Preset viewer">
+  <span class="ngd-brand">Project name</span>
+  <span class="ngd-round">Round 1</span>
+  <div class="ngd-group ngd-tabs" role="tablist" aria-label="Presets"></div>
+  <span class="ngd-spacer"></span>
+  <div class="ngd-group" aria-label="Viewport">
     <button type="button" data-view="overview" title="All presets side by side (O)">All<kbd>O</kbd></button>
     <button type="button" data-view="desktop" title="Desktop (D)">Desktop<kbd>D</kbd></button>
     <button type="button" data-view="tablet" title="Tablet, 820px (T)">Tablet<kbd>T</kbd></button>
     <button type="button" data-view="mobile" title="Mobile, 390px (M)">Mobile<kbd>M</kbd></button>
   </div>
-  <div class="group" aria-label="Color scheme" data-theme-group>
+  <div class="ngd-group" aria-label="Color scheme" data-theme-group>
     <button type="button" data-set-theme="light">Light</button>
     <button type="button" data-set-theme="dark">Dark</button>
   </div>
-  <button type="button" class="notes-toggle" aria-expanded="false" title="Why this preset (N)">Notes<kbd>N</kbd></button>
-</header>
-<aside class="notes-panel" hidden aria-live="polite"></aside>
+  <button type="button" class="ngd-notes-toggle" aria-expanded="false" title="Why this preset (N)">Notes<kbd>N</kbd></button>
+</div>
+<aside class="ngd-notes" hidden aria-live="polite"></aside>
 
-<main class="stage">
+<div class="ngd-stage">
+<!-- ngd:presets:start -->
   <!-- ======================================================================
-       PRESET TEMPLATE (copy five times: p1 … p5; ids must stay p1–p5 in round 1,
-       later rounds continue the numbering on screen via data-index, e.g. 6–10)
-  <section class="preset" id="p1" data-index="1" data-name="Name it after its idea" data-themes="light dark">
-    <div class="frame">
+       PRESET TEMPLATE, for filling by hand: one copy per preset between the presets
+       markers. The id is "p" + data-index: p1–p5 in round 1, p6–p10 in round 2.
+  <section class="ngd-preset" id="p1" data-index="1" data-name="Name it after its idea" data-themes="light dark">
+    <div class="ngd-frame">
       <header>…site header / navigation…</header>
       <main>…hero and sections, with real draft copy…</main>
       <footer>…</footer>
@@ -208,27 +221,34 @@
     </template>
   </section>
   ====================================================================== -->
-</main>
+<!-- ngd:presets:end -->
+</div>
 
-<p class="hint">Reply with the number you like best · or mix them (“hero from 2, sections from 4”) · or ask for five new directions.
+<p class="ngd-hint">Reply with the number you like best · or mix them (“hero from 2, sections from 4”) · or ask for five new directions.
 Keys: <b>1–5</b> or <b>←/→</b> switch · <b>D/T/M</b> viewport · <b>O</b> overview · <b>L</b> light/dark · <b>N</b> notes</p>
 
 <script>
 (() => {
-  const presets = [...document.querySelectorAll('.preset')];
-  const tabs = document.querySelector('.tabs');
-  const notesPanel = document.querySelector('.notes-panel');
-  const notesToggle = document.querySelector('.notes-toggle');
+  const presets = [...document.querySelectorAll('.ngd-preset')];
+  const tabs = document.querySelector('.ngd-tabs');
+  const notesPanel = document.querySelector('.ngd-notes');
+  const notesToggle = document.querySelector('.ngd-notes-toggle');
   const themeGroup = document.querySelector('[data-theme-group]');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const state = { index: 0, view: 'desktop', theme: prefersDark ? 'dark' : 'light' };
+
+  // Presets use top: var(--ngd-top, 0px) for sticky headers, so they stick below this toolbar.
+  const bar = document.querySelector('.ngd-bar');
+  const setTop = () => document.documentElement.style.setProperty('--ngd-top', `${bar.offsetHeight}px`);
+  new ResizeObserver(setTop).observe(bar);
+  setTop();
 
   presets.forEach((p, i) => {
     p.dataset.index ||= String(i + 1);
     const b = document.createElement('button');
     b.type = 'button';
     b.setAttribute('role', 'tab');
-    b.innerHTML = `<span class="num">${p.dataset.index}</span>${p.dataset.name || ''}`;
+    b.innerHTML = `<span class="ngd-num">${p.dataset.index}</span>${p.dataset.name || ''}`;
     b.addEventListener('click', () => select(i));
     tabs.append(b);
     p.addEventListener('click', () => { if (state.view === 'overview') { setView('desktop'); select(i); } });
@@ -240,7 +260,7 @@ Keys: <b>1–5</b> or <b>←/→</b> switch · <b>D/T/M</b> viewport · <b>O</b>
     presets.forEach((p) => {
       const allowed = themesOf(p);
       const t = allowed.includes(state.theme) ? state.theme : allowed[0];
-      p.querySelector('.frame')?.setAttribute('data-theme', t);
+      p.querySelector('.ngd-frame')?.setAttribute('data-theme', t);
     });
     const active = presets[state.index];
     const allowed = active ? themesOf(active) : ['light', 'dark'];
@@ -301,5 +321,6 @@ Keys: <b>1–5</b> or <b>←/→</b> switch · <b>D/T/M</b> viewport · <b>O</b>
   setView(['tablet', 'mobile', 'overview'].includes(params.get('view')) ? params.get('view') : 'desktop');
 })();
 </script>
+<!-- ngd:scripts -->
 </body>
 </html>

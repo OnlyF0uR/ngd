@@ -49,23 +49,34 @@ Rules of thumb:
 
 ## 3. Building the file
 
-1. **Tokens.** Generate with `node <skill-dir>/scripts/palette.mjs --brand "#hex"` (add `--mode light` or `--mode dark` if the user chose one; dark or light bands keep working either way). Use the exact output in the presets so what they approve is what ships.
-2. **Copy the shell** `assets/presets-shell.html` to `design/presets/round-1.html`. It contains the viewer: preset tabs, desktop/tablet/mobile and overview modes, a light/dark toggle, a notes drawer, keyboard shortcuts, placeholder and skeleton helpers, and an icon sprite (`<svg class="i"><use href="#i-arrow-right"/></svg>`; see the symbols in the file for the full list).
-3. **Paste the tokens** into `<style id="tokens">`, set the `<title>` and toolbar name.
-4. **Fonts.** In this temporary file only, load the proposed families from Google Fonts with `<link>` (only the weights you use). Always give a system fallback stack: the file must still read well offline.
-5. **Write each preset** as a `<section class="preset" id="p1" data-name="…" data-themes="light dark">` containing a `.frame` with the page markup and a `<template class="notes">` with the rationale (layout, typography, color & shape, imagery, motion idea, conversion path, trade-offs). Use `data-themes="dark"` for a dark-only preset.
-6. **Scope the CSS per preset** inside `<style id="preset-styles">` with nesting: `#p3 { .hero { … } }`. Make layouts respond to the frame, not the window: `@container page (width >= 900px) { … }`. Use the semantic tokens (`var(--color-accent)`, `var(--color-text-muted)` …) rather than raw hex values, so light/dark switching and the final build stay consistent. A dark band inside a light page is `<section data-theme="dark">` — the tokens flip locally.
-7. **Motion:** you may demo the intended motion with a little CSS (a hover state, one reveal). Keep it subtle and wrapped in `@media (prefers-reduced-motion: no-preference)`. Describe the full motion idea in the notes instead of building it.
-8. **Interactive bits:** a tiny inline script is fine to demo something essential — the first two steps of the conversational form, a variant picker, a sidebar collapse. Keep it under ~40 lines and make it scoped to its preset.
-9. **Content parity.** Use the same draft copy across presets, adapted only where the layout demands. That way the user compares design, not wording. One exception is welcome: a preset can show a different headline angle if you say so in its notes.
+Write each preset as a few small files and let `build-presets.mjs` assemble them into the viewer (`assets/presets-shell.html`: preset tabs, desktop/tablet/mobile and overview modes, a light/dark toggle, a notes drawer, keyboard shortcuts, placeholder and skeleton helpers, an icon sprite). Small files keep every edit small, so one preset can be fixed without touching the others.
 
-**Write it incrementally.** Create the file from the shell with the tokens first, then add one preset per edit (markup, scoped CSS and notes together), checking each as you go. Writing all five in a single response risks hitting output limits and makes fixes harder.
+1. **Start the round** (from the project folder):
+   ```sh
+   node <skill-dir>/scripts/build-presets.mjs --init design/presets/round-1 --project "Studio Name" --brand "#hex" --mode light --lang nl
+   ```
+   This writes `presets.json` and `tokens.css` (the exact palette.mjs output, so what the user approves is what ships; `--mode` as chosen in discovery; light or dark bands keep working either way). Pass the palette options you settled on (for example `--neutral-hue warm`) by generating `tokens.css` with palette.mjs `--out` instead.
+2. **Fill in `presets.json`:** a name per preset, its themes (`"light dark"`, `"light"` or `"dark"`), and the font stylesheet URLs (Google Fonts, only the weights you use; every font stack still ends in a system fallback so the file reads well offline).
+3. **Write each preset** as `p1.html` (the page inside the frame: header with desktop and mobile navigation, main, footer), `p1.css` and `p1.notes.html` (the rationale: layout, typography, color & shape, imagery, motion idea, conversion path, trade-offs, in a `<dl>` under an `<h2>`). Optional: `p1.js` for a small demo (it runs with `root` set to the preset), `shared.css` for helpers every preset uses, `symbols.svg` for extra icons. Round 2 continues with `p6`–`p10`.
+4. **CSS is scoped for you:** `p1.css` is the inside of `#p1 { … }`. Bare declarations style the whole preset (`font-family`), nested rules style its parts. Make everything respond to the frame, not the window: the frame is a container, so use `@container page (width >= 900px) { … }` for layout and container units for fluid sizes (`font-size: clamp(2.5rem, 7cqi, 5.5rem)`; `vw` would measure the whole browser window and show desktop-sized type in the 390px mobile view). Sticky elements use `top: var(--ngd-top, 0px)` so they stick below the viewer's toolbar. Use the semantic tokens (`var(--color-accent)`, `var(--color-text-muted)` …) instead of raw hex values so light/dark switching and the final build stay consistent. A dark band inside a light page is `<section data-theme="dark">`; the tokens flip locally. Put `@keyframes` at the top level of the file and prefix their names (`p1-rise`). Prefix ids too (`p1-email`), because all presets share one page.
+5. **Build after every preset** and check it before writing the next (section 4):
+   ```sh
+   node <skill-dir>/scripts/build-presets.mjs design/presets/round-1    # writes design/presets/round-1.html
+   ```
+   The builder includes a preset as soon as its `.html` exists and warns about missing notes, duplicate ids, raw colors and file size.
+6. **Motion:** demo the intended motion with a little CSS (a hover state, one reveal), wrapped in `@media (prefers-reduced-motion: no-preference)`. Describe the full motion idea in the notes instead of building it.
+7. **Interactive bits:** a short `pN.js` is fine for something essential: the first two steps of the conversational form, a variant picker, a sidebar collapse. Keep it under about 40 lines.
+8. **Content parity.** Use the same draft copy across presets, adapted only where the layout demands. That way the user compares design, not wording. One exception is welcome: a preset can show a different headline angle if you say so in its notes.
+9. **Proof you don't have yet.** Show only real facts: the real rating and review count if known, real logos the user may publish. Where a quote or number is still missing, use a visibly marked placeholder ("Review from Google, to be chosen") instead of inventing one; mark a number that still needs confirming with `<span class="tbd" title="To be confirmed">4.8</span>` (dotted underline).
+10. **More than one page in a preset** (a shop's product page, a panel's second screen): separate the parts with `<div class="ngd-part" data-part="Product page"></div>`. It renders a labelled divider, and the screenshot script captures each part on its own.
 
-Keep the file self-contained (no external scripts or CSS frameworks) and lean: aim for under about 150 KB. No base64-embedded photos; reference local images by relative path.
+Keep the output lean: aim for under about 150 KB, no base64-embedded photos (reference local images by relative path), no external scripts or CSS frameworks.
+
+Without Node, fill the shell by hand: copy `assets/presets-shell.html` to `design/presets/round-1.html` and fill the points marked with `ngd:` comments (fonts, tokens, styles, symbols, the presets between the start and end markers, scripts), plus the title, `lang` and the toolbar name. Write one preset per edit.
 
 ## 4. Checking your work before showing it
 
-Run `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets` from the project folder. It captures every preset at desktop and mobile width into `design/presets/shots/` and reports runtime errors. If Playwright isn't available, open the file in a browser if you can, or review the markup carefully, and tell the user the screenshots were skipped. Then **look at the screenshots** yourself and fix:
+Run `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets` from the project folder (add `--theme dark` for the dark variants). It captures every preset at desktop and mobile width into `design/presets/shots/` with reduced motion (so reveals can't hide content) and reports runtime errors, problems in the file itself (broken head, leftover shell tokens, duplicate ids, missing notes) and anything sticking out of the 390px frame. A clean run only means nothing is broken. If Playwright isn't available, open the file in a browser if you can, or review the markup carefully, and tell the user the screenshots were skipped. Then **look at the screenshots** yourself and fix:
 - anything broken at 390px (overflow, text overlapping images, cramped nav);
 - presets that look too similar to each other: push the difference further;
 - presets that look generic: check the anti-patterns list in design-language.md (centred-everything, three identical icon cards, purple gradients for no reason, stock-photo clichés);
@@ -74,7 +85,7 @@ Run `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --prese
 
 ## 5. Presenting and asking
 
-Show the file in the most direct way available: publish or open it if you have an artifact/preview tool, otherwise give the path and tell the user to open it in a browser. If your interface can show images, include the desktop screenshot of each preset too.
+Show the file in the most direct way available: publish or open it if you have an artifact or preview tool (the file is self-contained: inline CSS and scripts, fonts from Google Fonts, which most publishing tools accept; publish it privately, it's a draft), otherwise give the path and tell the user to open it in a browser. If your interface can show images, include the desktop screenshot of each preset too.
 
 Then, in a short message:
 - one line per preset: number, name, the idea, who it suits;
@@ -88,9 +99,9 @@ Then, in a short message:
 
 ## 6. Iterating: tweaks, mixes, more rounds
 
-- **Tweak:** edit that preset in place and re-check it. Say what you changed.
-- **Mix:** build the combination as one new preset in the same file (next free number) and show just that one. Mixing can produce something incoherent; a quick look avoids building the wrong thing.
-- **More:** create `design/presets/round-2.html` with five new directions, numbered 6–10 (`data-index`). Write down what the user liked and disliked first and use it: keep what they praised, explore what you haven't tried, drop what they rejected. Never quietly repeat a rejected idea.
+- **Tweak:** edit that preset's files, rebuild and re-check. Say what you changed.
+- **Mix:** build the combination as one new preset in the same round with the next free number (add an entry to `presets.json` with `"index": 6`, write `p6.*`) and show just that one. Mixing can produce something incoherent; a quick look avoids building the wrong thing. Numbers are never reused, so the user can always refer to "6": if a mix took 6, give the next round's entries `index` 7–11.
+- **More:** start `design/presets/round-2` with `--init` (it numbers the presets 6–10) and build five new directions. Write down what the user liked and disliked first and use it: keep what they praised, explore what you haven't tried, drop what they rejected. Never quietly repeat a rejected idea.
 - If the user is stuck after two rounds, ask two or three sharp either/or questions ("airy or dense? photo-led or type-led?") rather than generating another five.
 
 ## 7. Locking the choice in

@@ -29,8 +29,8 @@ skills/<skill>/
 ├── references/              type-specific references (playbooks, store UX, panel architecture …)
 ├── references/core/         shared references: discovery, presets, design language, architecture,
 │                            SEO, motion, imagery, forms, copywriting, quality
-├── scripts/                 palette.mjs (theme color → accessible tokens), screenshot.mjs,
-│                            ngd-audit.mjs (project rule checks)
+├── scripts/                 palette.mjs (theme color → accessible tokens), build-presets.mjs
+│                            (assembles the presets file), screenshot.mjs, ngd-audit.mjs (project checks)
 └── assets/                  presets-shell.html (preset viewer), DESIGN.template.md,
                              starter/ (verified React Router 8 + Cloudflare starter files)
 ```

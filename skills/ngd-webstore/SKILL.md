@@ -29,7 +29,7 @@ Work through the phases in order. Each one ends with something the user can see 
 | 0. Orient | what exists, which tools and environment you have, which ngd skills apply | this section |
 | 1. Discover | interview answers → `DESIGN.md` | `references/core/discovery.md` |
 | 2. Research | keyword plan + competitor notes → `design/seo-plan.md` | `references/core/seo.md` |
-| 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md` |
+| 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md`; for the draft copy, form and motion idea also `copywriting.md`, `forms.md`, `motion.md` and `imagery.md` in `references/core/` |
 | 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` |
 | 5. Build | every page or screen with real content, forms, images, motion | this skill's references, plus `references/core/` forms, copywriting, imagery and motion |
 | 6. Verify | checks pass, screenshots reviewed, fixes made | `references/core/quality.md` |
@@ -51,10 +51,10 @@ Work through the phases in order. Each one ends with something the user can see 
 Run the interview in `references/core/discovery.md`, adding this skill's extra questions (below): three short rounds (a fourth for type-specific details if needed), nothing you could infer, and a recommended default for every question. The theme color either comes from the user or is picked from three options you propose and validate with `node <skill-dir>/scripts/palette.mjs --candidates …`. Ask about images (provided, generated if an image tool is connected, stock, or none, and where to find them) and, separately, entrance and scroll animations. Create `DESIGN.md` from `assets/DESIGN.template.md` and play back a short summary with your assumptions.
 
 ### Phase 2: research
-For anything that will be indexed, research keywords for the niche, location and language, scan competitors, and map one keyword cluster to each page in `design/seo-plan.md` (`references/core/seo.md`). Share the sitemap and top keywords in a few lines, because it may change what gets built. Panels skip keyword research but still research the domain (typical entities, workflows, metrics).
+For anything that will be indexed, research keywords for the niche, location and language, scan competitors, and map one keyword cluster to each page in `design/seo-plan.md` (`references/core/seo.md`). Share the sitemap and top keywords in a few lines, because it may change what gets built. Then continue straight to the presets; wait for a reply only when a finding needs the user's decision (the site's language, a page or market they didn't plan for). Panels skip keyword research but still research the domain (typical entities, workflows, metrics).
 
 ### Phase 3: five skeleton presets
-Build five clearly different directions in ONE file, `design/presets/round-1.html`, from `assets/presets-shell.html`, one preset at a time. Use real draft copy and the generated tokens, check the file with `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets`, show it, and ask the user to pick one, mix, tweak, or request five more (`references/core/presets.md`). Write no production code before a direction is chosen. The choice is the user's, and building early wastes their time if they choose differently.
+Build five clearly different directions in ONE file, `design/presets/round-1.html`, one preset at a time: write each as small files in `design/presets/round-1/` and assemble them with `node <skill-dir>/scripts/build-presets.mjs design/presets/round-1`. Use real draft copy and the generated tokens, check the file with `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets` and look at the screenshots, then show it and ask the user to pick one, mix, tweak, or request five more (`references/core/presets.md`). Write no production code before a direction is chosen. The choice is the user's, and building early wastes their time if they choose differently.
 
 ### Phase 4: foundation
 Scaffold the latest React Router (framework mode, SSR) on Cloudflare Workers, or upgrade the existing project. Apply the verified starter in `assets/starter/`, generate `app/styles/tokens.css` with `node <skill-dir>/scripts/palette.mjs`, then set up fonts, the small `global.css`, the layout shell, UI primitives and SEO plumbing (`references/core/architecture.md`). Reproduce the chosen preset faithfully: same typography, spacing rhythm, shape language and signature details.
@@ -73,7 +73,7 @@ The ngd skills (**ngd-standard** for landing pages and content sites, **ngd-webs
 - Load every relevant ngd skill and run this workflow **once**: one interview with the extra questions merged, one `DESIGN.md` with a section per surface, one research pass covering all indexed pages, one project and one design system.
 - **Presets:** start with the public surface (webstore or standard), because it defines the brand. Once it's chosen, run a second round of five presets for the panel. They inherit the chosen tokens and typography and vary the app-shell structure and density, and they can be lighter (shell, dashboard, one list). For standard plus webstore, one round whose presets show both a content page and the shop views.
 - **Build order:** shared foundation, then the public surface, then the panel.
-- If a request clearly needs an ngd skill that isn't installed, say so and apply the closest guidance from the core references.
+- The sibling skills sit next to this one (`<skill-dir>/../ngd-panel/SKILL.md` and so on). If a request needs one that isn't loaded, read its SKILL.md from there; if it isn't installed at all, say so and apply the closest guidance from the core references.
 
 ### When guidance conflicts
 1. The user's explicit answers and instructions.
@@ -87,22 +87,24 @@ Theme color, color mode, fonts, motion level and imagery are always the user's d
 ## What's specific to webstores
 
 ### Extra discovery questions
-Fold these into the interview rounds (skip what you already know):
-- **What you sell:** physical goods, digital products, subscriptions or services? How many products and variants, and how often does the catalogue change?
-- **Where products live today:** Shopify, WooCommerce, another platform, a spreadsheet, nowhere yet? If migrating: product URLs (redirects), customers, orders and reviews.
-- **Who runs the store day to day:** non-technical staff need a real admin (the platform's, or an ngd-panel admin).
+Merge these into the core rounds; a short fourth round for payments and shipping is fine. Skip whatever the request already answers.
+
+**Ask:**
+- **What you sell:** physical goods, digital products, subscriptions or services? How many products and variants, and how often does the catalogue change? (With round 1's "what are we building".)
+- **Where products live today:** Shopify, WooCommerce, another platform, a spreadsheet, nowhere yet? If migrating: product URLs (redirects), customers, orders and reviews. Who runs the store day to day? (Non-technical staff need a real admin: the platform's, or an ngd-panel admin.)
 - **Payments and markets:** countries, currencies, languages, payment methods customers expect (cards, wallets, iDEAL/Wero, Bancontact, Klarna, PayPal), B2B invoicing?
 - **Shipping and returns:** carriers, zones, costs, free-shipping threshold, delivery times and cut-off, pickup points, return window, return costs.
-- **Taxes:** VAT registration and cross-border sales (who calculates VAT?).
-- **Product content:** photography per variant? Descriptions, specs, size guides, safety information?
-- **Reviews:** an existing review source to import or display, or start fresh?
-- **Accounts:** guest checkout plus optional accounts (recommended), or accounts required?
-- **Promotions:** discount codes, sales, gift cards, loyalty?
-- **Fulfilment:** own stock, a 3PL or dropshipping? Inventory sync?
-- **Company details** for the imprint, terms, returns policy and withdrawal information.
+- **Product content:** photography per variant? Descriptions, specs, size guides, safety information? (With round 3's image question.)
+- **Company details** for the imprint, terms, returns policy and withdrawal information (ask for them when you reach the legal pages if the user prefers).
 
-Then choose the commerce backend with the user (`references/commerce.md`, section 1) and record the reasons in DESIGN.md.
+**Assume and state in the playback** (the user corrects in one line):
+- **Taxes:** prices include VAT; the payment or commerce provider calculates cross-border VAT (OSS) if they sell abroad.
+- **Reviews:** start collecting fresh unless they have a source to import or display.
+- **Accounts:** guest checkout plus optional accounts.
+- **Promotions:** discount codes only at launch; sales, gift cards and loyalty later.
+- **Fulfilment:** own stock with the platform's inventory, unless they mentioned a 3PL or dropshipping.
 
+Then propose the commerce backend (`references/commerce.md`, section 1) in the playback, with a one-line reason and the main trade-off, so the user can correct it without an extra round. Ask outright only when two options are genuinely close. Record the decision and reasons in DESIGN.md.
 ### Read before designing and building
 - `references/store-ux.md`: page-by-page UX for home, category, product, cart, checkout, account, search, reviews and promotions, with mobile and accessibility specifics. Use it to plan the presets and the build.
 - `references/commerce.md`: backend options, catalogue rendering and caching, cart, checkout, webhooks, search, media, money and tax, store SEO, EU compliance, analytics and performance.
@@ -117,7 +119,7 @@ Pick five that suit the brand and catalogue and that differ strongly (`reference
 6. **Bento Collections:** collections and categories in a playful bento grid with mixed image sizes. Suits lifestyle, gifts and food.
 7. **Guided Finder:** a short quiz in the hero ("Find your roast") that leads to recommended products. Suits coffee, skincare, mattresses and anything where choice paralysis kills sales.
 
-**What each preset shows:** one long page in two parts. First the **homepage** (header with search and cart, USP bar, hero, category entry points, a product rail or grid with real-looking cards and prices, proof, footer). Then, after a clear "Product page" divider, the **product page** (gallery, buy box with variant picker, price, delivery and returns reassurance, details accordion, reviews summary). Add the open cart drawer if the direction has a distinctive one.
+**What each preset shows:** one long page in two parts. First the **homepage** (header with search and cart, USP bar, hero, category entry points, a product rail or grid with real-looking cards and prices, proof, footer). Then, after a `<div class="ngd-part" data-part="Product page"></div>` divider (the screenshot script captures each part), the **product page** (gallery, buy box with variant picker, price, delivery and returns reassurance, details accordion, reviews summary). Add the open cart drawer if the direction has a distinctive one.
 
 ### Build notes
 - **Commerce module first:** `app/lib/commerce.server.ts` wraps the chosen provider. Pages use its typed functions, never the provider SDK directly.

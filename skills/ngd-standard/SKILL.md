@@ -29,7 +29,7 @@ Work through the phases in order. Each one ends with something the user can see 
 | 0. Orient | what exists, which tools and environment you have, which ngd skills apply | this section |
 | 1. Discover | interview answers → `DESIGN.md` | `references/core/discovery.md` |
 | 2. Research | keyword plan + competitor notes → `design/seo-plan.md` | `references/core/seo.md` |
-| 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md` |
+| 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md`; for the draft copy, form and motion idea also `copywriting.md`, `forms.md`, `motion.md` and `imagery.md` in `references/core/` |
 | 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` |
 | 5. Build | every page or screen with real content, forms, images, motion | this skill's references, plus `references/core/` forms, copywriting, imagery and motion |
 | 6. Verify | checks pass, screenshots reviewed, fixes made | `references/core/quality.md` |
@@ -51,10 +51,10 @@ Work through the phases in order. Each one ends with something the user can see 
 Run the interview in `references/core/discovery.md`, adding this skill's extra questions (below): three short rounds (a fourth for type-specific details if needed), nothing you could infer, and a recommended default for every question. The theme color either comes from the user or is picked from three options you propose and validate with `node <skill-dir>/scripts/palette.mjs --candidates …`. Ask about images (provided, generated if an image tool is connected, stock, or none, and where to find them) and, separately, entrance and scroll animations. Create `DESIGN.md` from `assets/DESIGN.template.md` and play back a short summary with your assumptions.
 
 ### Phase 2: research
-For anything that will be indexed, research keywords for the niche, location and language, scan competitors, and map one keyword cluster to each page in `design/seo-plan.md` (`references/core/seo.md`). Share the sitemap and top keywords in a few lines, because it may change what gets built. Panels skip keyword research but still research the domain (typical entities, workflows, metrics).
+For anything that will be indexed, research keywords for the niche, location and language, scan competitors, and map one keyword cluster to each page in `design/seo-plan.md` (`references/core/seo.md`). Share the sitemap and top keywords in a few lines, because it may change what gets built. Then continue straight to the presets; wait for a reply only when a finding needs the user's decision (the site's language, a page or market they didn't plan for). Panels skip keyword research but still research the domain (typical entities, workflows, metrics).
 
 ### Phase 3: five skeleton presets
-Build five clearly different directions in ONE file, `design/presets/round-1.html`, from `assets/presets-shell.html`, one preset at a time. Use real draft copy and the generated tokens, check the file with `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets`, show it, and ask the user to pick one, mix, tweak, or request five more (`references/core/presets.md`). Write no production code before a direction is chosen. The choice is the user's, and building early wastes their time if they choose differently.
+Build five clearly different directions in ONE file, `design/presets/round-1.html`, one preset at a time: write each as small files in `design/presets/round-1/` and assemble them with `node <skill-dir>/scripts/build-presets.mjs design/presets/round-1`. Use real draft copy and the generated tokens, check the file with `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets` and look at the screenshots, then show it and ask the user to pick one, mix, tweak, or request five more (`references/core/presets.md`). Write no production code before a direction is chosen. The choice is the user's, and building early wastes their time if they choose differently.
 
 ### Phase 4: foundation
 Scaffold the latest React Router (framework mode, SSR) on Cloudflare Workers, or upgrade the existing project. Apply the verified starter in `assets/starter/`, generate `app/styles/tokens.css` with `node <skill-dir>/scripts/palette.mjs`, then set up fonts, the small `global.css`, the layout shell, UI primitives and SEO plumbing (`references/core/architecture.md`). Reproduce the chosen preset faithfully: same typography, spacing rhythm, shape language and signature details.
@@ -73,7 +73,7 @@ The ngd skills (**ngd-standard** for landing pages and content sites, **ngd-webs
 - Load every relevant ngd skill and run this workflow **once**: one interview with the extra questions merged, one `DESIGN.md` with a section per surface, one research pass covering all indexed pages, one project and one design system.
 - **Presets:** start with the public surface (webstore or standard), because it defines the brand. Once it's chosen, run a second round of five presets for the panel. They inherit the chosen tokens and typography and vary the app-shell structure and density, and they can be lighter (shell, dashboard, one list). For standard plus webstore, one round whose presets show both a content page and the shop views.
 - **Build order:** shared foundation, then the public surface, then the panel.
-- If a request clearly needs an ngd skill that isn't installed, say so and apply the closest guidance from the core references.
+- The sibling skills sit next to this one (`<skill-dir>/../ngd-panel/SKILL.md` and so on). If a request needs one that isn't loaded, read its SKILL.md from there; if it isn't installed at all, say so and apply the closest guidance from the core references.
 
 ### When guidance conflicts
 1. The user's explicit answers and instructions.
@@ -87,15 +87,17 @@ Theme color, color mode, fonts, motion level and imagery are always the user's d
 ## What's specific to standard sites
 
 ### Extra discovery questions
-Fold these into the interview rounds (skip what you already know):
-- **Kind of site:** match it to a playbook in `references/site-playbooks.md` (local service, health and wellness, professional services, SaaS, portfolio, hospitality, real estate, events, personal brand, B2B industrial, non-profit, campaign landing page). This drives the sitemap, sections and schema.
-- **One campaign page or a full site?** Campaign pages get one goal, minimal navigation and message match with the ad or email.
-- **Services or products to feature,** in priority order, and the areas they serve (for local SEO).
-- **Booking:** do they use a booking tool (link or embed on click), or is the lead form enough?
-- **Content they can supply:** case studies, portfolio items, team photos, certifications, FAQs customers ask, press.
-- **Pricing:** public prices, "from" prices, or on request (with a reason)?
-- **Blog or resources:** planned and maintained? Only promise content marketing if someone will write.
-- **Lead qualification:** what must the business know before replying? These become the steps of the conversational form. Also: their response-time promise.
+Merge these into the core rounds and skip whatever the request already answers.
+
+**Ask:**
+- **Kind of site:** match it to a playbook in `references/site-playbooks.md` (local service, health and wellness, professional services, SaaS, portfolio, hospitality, real estate, events, personal brand, B2B industrial, non-profit, campaign landing page). This drives the sitemap, sections and schema. Usually you can infer it; then state it instead of asking. Also: one campaign page or a full site? (Campaign pages get one goal, minimal navigation and message match with the ad or email.)
+- **Services or products to feature,** in priority order, and the areas they serve (for local SEO). Ask it together with round 1's "what are we building".
+- **Lead qualification and booking:** what the business must know before replying (these become the steps of the conversational form), their response-time promise, and whether they use a booking tool. Ask it together with round 3's lead question.
+
+**Assume and state in the playback** (the user corrects in one line):
+- **Content they can supply** (case studies, portfolio, team photos, certifications, FAQs, press): ask for it as part of round 1's "what exists already".
+- **Pricing:** "from" prices if they shared any, otherwise "on request" with the reason shown.
+- **Blog or resources:** none at launch unless someone will write regularly; the structure allows adding one later.
 
 ### Think like a strategist
 Before the sitemap and presets, read the matching playbook in `references/site-playbooks.md`: what the visitor is really asking, which conversion matters, which pages, sections and trust signals this kind of business needs, the schema type, the SEO angle and the usual mistakes. Then use `references/page-anatomy.md` to plan the homepage narrative (hero → proof → problem → how it works → benefits → social proof → offer → FAQ → final CTA) and each page template. Tell the user briefly *why* the structure is what it is; it builds trust in your choices.

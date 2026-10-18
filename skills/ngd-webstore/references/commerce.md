@@ -54,6 +54,10 @@ Keep the integration behind a small server-only module (`app/lib/commerce.server
 - Offer the payment methods the market expects (cards, Apple Pay/Google Pay, PayPal, and local methods such as iDEAL/Wero in the Netherlands, Bancontact in Belgium, Klarna for buy-now-pay-later). Confirm availability with the provider.
 - Create the checkout session on the server (a route action) with the cart contents re-priced server-side; never trust client-side prices.
 - A custom checkout (Payment Element and similar) is a bigger project: one page or an accordion of three steps, guest by default, express wallets on top, address autocomplete, inline validation, clear totals including shipping and VAT, and an unambiguous final button ("Order and pay").
+- **Subscriptions** (coffee, refills, boxes):
+  - Use the platform's subscription feature or a dedicated provider, and check which payment methods can renew automatically. Cards, wallets and PayPal usually can; iDEAL and Bancontact are one-off methods that renew only through a SEPA Direct Debit mandate created by the first payment, which some providers support (Mollie, for example) and some subscription apps don't. Tell the user early if their customers' favourite method can't renew.
+  - Before checkout, show the price per delivery, the frequency, when the next charge happens and how to cancel.
+  - Customers manage it themselves: skip, pause, change frequency, quantity or variant, update payment method and address, and cancel online as easily as they signed up (several countries require this, Germany's cancellation button for example). That self-service area is a customer portal; build it with ngd-panel patterns.
 
 ## 5. Orders, webhooks and fulfilment
 
@@ -80,6 +84,7 @@ Keep the integration behind a small server-only module (`app/lib/commerce.server
 - Store money as integers in minor units (cents) with a currency code; format with `Intl.NumberFormat(locale, { style: 'currency', currency })`.
 - Consumers in the EU see prices **including VAT**; show shipping costs before checkout (a free-shipping threshold in the header bar and cart). Cross-border EU sales may need VAT per destination country (OSS); confirm the setup with the user and the payment/commerce provider (Stripe Tax, Shopify Markets, merchant of record).
 - Unit prices (per kg, per litre) where the law requires them for the product type.
+- **Mixed VAT rates:** food, books and some other goods use reduced rates (in the Netherlands 9% for food, 21% for equipment); set the tax category per product in the platform rather than one shop-wide rate.
 - Multiple markets: per-market URLs (`/nl/`, `/de/` or subdomains) with hreflang, prices and currency per market, and a suggestion banner instead of forced geo-redirects.
 
 ## 9. Store SEO
@@ -88,11 +93,11 @@ Keep the integration behind a small server-only module (`app/lib/commerce.server
 - **Product pages:** unique descriptions (never the manufacturer's copy alone), descriptive title (brand + product + key attribute), breadcrumbs, multiple images with good alt text, reviews rendered as HTML.
 - **Structured data:** `Product` with `offers` (price, priceCurrency, availability, itemCondition, url), brand, sku/gtin/mpn, images; variants as `ProductGroup` with `hasVariant` and `variesBy`; `aggregateRating`/`review` only from genuine customer reviews. Shop-wide return and shipping policies go on `Organization` (`hasMerchantReturnPolicy`, `hasShippingService`); per-product exceptions on the `Offer`. Sale prices and dates via `priceSpecification`/`validFrom`/`validThrough`. Validate with the Rich Results Test.
 - **One URL per product.** Variant selections use a query parameter (`?color=sage`) with the canonical pointing to the product URL, unless a variant has its own real search demand.
-- **Faceted navigation:** filter URLs multiply endlessly. Keep only a few valuable filter combinations indexable (with clean, stable URLs and their own intro copy); for the rest, use parameters you block in robots.txt (`Disallow: /*?*sort=`) or keep filters in client state. Return 404 for empty or nonsense combinations. Canonical tags alone are a weak fix.
+- **Faceted navigation** (seo.md section 3): turn the few filter combinations with real search demand into clean category-style URLs with their own intro copy (`/shirts/linen/women`); keep every other filter and sort option in query parameters that robots.txt blocks (`Disallow: /*?*sort=`), or in client state. Empty or nonsense combinations return 404. Canonical tags alone don't stop the crawling.
 - **Pagination:** crawlable `?page=2` links, each page self-canonical; "load more" buttons also need those links.
 - **Out of stock:** keep the page (200) with alternatives and back-in-stock signup. Discontinued for good: 301 to the closest replacement or the category; 410 when nothing fits.
 - **Feeds:** a Google Merchant Center product feed (`/feeds/google.xml` resource route) unlocks free product listings; Meta and others accept similar feeds.
-- `noindex`: cart, checkout, account, search results, sort and filter variants you don't want indexed.
+- **Crawl and index rules** (the table in seo.md section 5): cart, checkout and search results carry `noindex` and stay crawlable; `/account` is behind login, disallowed in robots.txt and sent with a `noindex` header; sort and low-value filter parameters are disallowed in robots.txt and never appear in the sitemap.
 
 ## 10. Legal and compliance (EU focus)
 
@@ -105,6 +110,11 @@ Check the user's markets; these are the common EU requirements that shape the UI
 - **Order button:** the final checkout button says unambiguously that ordering means paying ("Order and pay"). Hosted checkouts handle this; custom checkouts must.
 - **Company information:** legal name, address, registration and VAT numbers, contact email/phone (imprint or footer + terms).
 - **Product safety:** online listings show the manufacturer (or responsible person in the EU), product identifiers, and warnings or safety information where applicable.
+- **Product-category rules** can block a market, so check them per category before launch and have the user confirm them with an adviser:
+  - *Food and drink* (EU Regulation 1169/2011): for distance sales, the mandatory food information (name, ingredients with allergens emphasised, net quantity, storage conditions, nutrition declaration, the business's name and address, origin where required) must be on the product page before purchase; only the best-before date may wait until delivery.
+  - *Excise goods* (alcohol, tobacco, and coffee in Germany): selling to consumers in another EU country usually means paying excise in the destination country, often through a tax representative there.
+  - *Age-restricted goods* (alcohol, knives, some chemicals): age verification at checkout and on delivery.
+  - *Cosmetics, toys, electronics, textiles:* ingredient lists, CE marking and warnings, take-back information, fibre composition.
 - **Accessibility:** consumer e-commerce must meet the European Accessibility Act (build to WCAG 2.2 AA; micro-enterprises are exempt), including an accessibility statement in the terms or a dedicated page.
 - **Privacy and cookies:** privacy policy, consent for non-essential cookies and tracking, data export/deletion for accounts.
 

@@ -13,7 +13,7 @@ export const site = {
   locale: 'en',
   ogLocale: 'en_US',
   description: 'One-sentence description of what the business offers and for whom.',
-  defaultOgImage: '/og/default.jpg',
+  defaultOgImage: '/og/default.png', // 1200×630; screenshot.mjs can render it from an HTML card (imagery.md)
   logo: '/logo.png',
   /** Public Turnstile site key (not a secret). This is Cloudflare's always-passing TEST key, so local
    *  development works with the test secret in .dev.vars. Replace it with the real key before launch.
