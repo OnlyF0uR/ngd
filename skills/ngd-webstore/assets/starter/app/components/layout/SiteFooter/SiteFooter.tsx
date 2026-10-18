@@ -4,7 +4,7 @@ import styles from './SiteFooter.module.css';
 
 /** Rich footer: navigation, full contact details (consistent NAP for local SEO), socials, legal. */
 export function SiteFooter() {
-  const { contact } = site;
+  const { contact, ui } = site;
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
@@ -15,8 +15,8 @@ export function SiteFooter() {
           <p className={styles.tagline}>{site.description}</p>
         </div>
 
-        <nav aria-label="Footer" className={styles.column}>
-          <h2 className={styles.heading}>Explore</h2>
+        <nav aria-label={ui.footerNav} className={styles.column}>
+          <h2 className={styles.heading}>{ui.footerExplore}</h2>
           <ul role="list">
             {site.nav.map((item) => (
               <li key={item.href}>
@@ -26,40 +26,42 @@ export function SiteFooter() {
           </ul>
         </nav>
 
-        <address className={styles.column}>
-          <h2 className={styles.heading}>Contact</h2>
-          <ul role="list">
-            <li>
-              {contact.address.street}, {contact.address.postalCode} {contact.address.city}
-            </li>
-            <li>
-              <a href={telHref(contact.phone)}>{contact.phone}</a>
-            </li>
-            <li>
-              <a href={`mailto:${contact.email}`}>{contact.email}</a>
-            </li>
-            {contact.whatsapp && (
+        <div className={styles.column}>
+          <h2 className={styles.heading}>{ui.footerContact}</h2>
+          <address>
+            <ul role="list">
               <li>
-                <a href={whatsappHref(contact.whatsapp)} rel="noopener">
-                  WhatsApp
-                </a>
+                {contact.address.street}, {contact.address.postalCode} {contact.address.city}
               </li>
-            )}
-          </ul>
-        </address>
+              <li>
+                <a href={telHref(contact.phone)}>{contact.phone}</a>
+              </li>
+              <li>
+                <a href={`mailto:${contact.email}`}>{contact.email}</a>
+              </li>
+              {contact.whatsapp && (
+                <li>
+                  <a href={whatsappHref(contact.whatsapp)} rel="noopener">
+                    WhatsApp
+                  </a>
+                </li>
+              )}
+            </ul>
+          </address>
+        </div>
       </div>
 
       <div className={styles.bottom}>
-        <p>
+        {/* Prerendered pages keep the build-time year until the next deploy; suppress the harmless mismatch */}
+        <p suppressHydrationWarning>
           © {new Date().getFullYear()} {site.legalName}
         </p>
         <ul role="list" className={styles.legal}>
-          <li>
-            <Link to="/privacy">Privacy</Link>
-          </li>
-          <li>
-            <Link to="/terms">Terms</Link>
-          </li>
+          {site.legal.map((page) => (
+            <li key={page.href}>
+              <Link to={page.href}>{page.label}</Link>
+            </li>
+          ))}
         </ul>
       </div>
     </footer>

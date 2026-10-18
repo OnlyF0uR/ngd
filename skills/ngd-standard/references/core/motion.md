@@ -70,19 +70,20 @@ All recipes assume CSS Modules; class names are local to the component's `.modul
 
 ### 4.2 Hero entrance (subtle), safe for LCP
 
-The heading and main visual move but never start invisible. Secondary elements may also fade.
+Everything in the first viewport moves but never starts invisible: the heading, the call to action and the main visual are readable and clickable from the first frame.
 
 ```css
 @media (prefers-reduced-motion: no-preference) {
   .title   { animation: rise var(--dur-reveal) var(--ease-out) both; }
-  .lead    { animation: rise-fade var(--dur-reveal) var(--ease-out) 60ms both; }
-  .actions { animation: rise-fade var(--dur-reveal) var(--ease-out) 120ms both; }
+  .lead    { animation: rise var(--dur-reveal) var(--ease-out) 60ms both; }
+  .actions { animation: rise var(--dur-reveal) var(--ease-out) 120ms both; }
   .visual  { animation: settle 900ms var(--ease-out) both; }
 }
-@keyframes rise      { from { transform: translateY(14px); } }
-@keyframes rise-fade { from { transform: translateY(14px); opacity: 0; } }
-@keyframes settle    { from { transform: scale(1.03); } }
+@keyframes rise   { from { transform: translateY(14px); } }
+@keyframes settle { from { transform: scale(1.03); } }
 ```
+
+Fades from transparent belong to decorative extras (a badge, a floating card, background shapes), never to the heading, the call to action or the LCP image.
 
 These run from CSS as soon as the stylesheet arrives: no JavaScript, no waiting for hydration.
 
@@ -110,7 +111,7 @@ Content already in the viewport at load is past its entry range, so it is fully 
 Use when you want the "appears once, in sequence" feel or need support beyond scroll-driven animations. Elements are only hidden after hydration, and only if they are still below the fold, so nothing visible ever blinks away.
 
 ```tsx
-// app/components/Reveal/Reveal.tsx
+// app/components/motion/Reveal/Reveal.tsx (in the starter)
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import styles from './Reveal.module.css';
 

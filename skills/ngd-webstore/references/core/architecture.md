@@ -47,12 +47,14 @@ CI=true npx -y create-cloudflare@latest my-site --framework=react-router --platf
 
 This runs the official React Router template and adds the Cloudflare files: `workers/app.ts`, `wrangler.jsonc`, `@cloudflare/vite-plugin`, Wrangler, type generation. Behind a corporate or sandbox proxy, `create-react-router` may need `NODE_USE_ENV_PROXY=1`.
 
+**Where it lands.** The scaffolder creates a new folder and refuses a non-empty one, and its name must be lowercase with hyphens (`kinetic-physio`, not `Kinetic Physio`). If phases 1–3 already put `DESIGN.md` and `design/` in the current folder, scaffold into a new folder named after the project, then move `DESIGN.md` and `design/` into it, and continue there. (Or scaffold into a temporary folder and move its contents into the current one, if the user wants the project at the current path.)
+
 **Then clean it up for NGD** (the verified starter files in `assets/starter/` give you the replacements; its README lists every file):
 1. Remove Tailwind: uninstall `tailwindcss` and `@tailwindcss/vite`, drop `tailwindcss()` from `vite.config.ts`, delete `app/app.css`. NGD styling is CSS Modules plus a small global stylesheet (section 5).
 2. Delete `app/welcome/` and the demo `VALUE_FROM_CLOUDFLARE` var; replace `app/routes/home.tsx`.
 3. Replace the Google Fonts `<link>`s in `app/root.tsx` with self-hosted fonts (section 13).
 4. Copy the starter files you need: `app/root.tsx`, `app/styles/global.css`, `app/lib/*` (site config, SEO helper, typed Cloudflare context), `workers/app.ts`, the sitemap and robots routes, `public/_headers`, and the components you'll use (StepForm, Reveal, Image).
-5. Generate `app/styles/tokens.css` with `node scripts/palette.mjs --brand "#hex" --out app/styles/tokens.css` (add `--mode light|dark` if the site is single-mode).
+5. Generate `app/styles/tokens.css` with `node <skill-dir>/scripts/palette.mjs --brand "#hex" --out app/styles/tokens.css` (add `--mode light|dark` for a fixed default; both token sets are always emitted so `data-theme` bands work).
 6. In `wrangler.jsonc` (merge, don't overwrite): set `name`, add `"assets": { "html_handling": "drop-trailing-slash" }` if you prerender, add public `vars` and the bindings you need (section 8). Leave `compatibility_date` as generated: from 2026-08-04 on, `nodejs_compat` is on by default, so don't add compatibility flags you don't need.
    Set the production URL, contact details and navigation in `app/lib/site.ts` (`site.url` is the one source for absolute URLs).
 7. Run `npm run typecheck && npm run build` before writing features.
@@ -166,6 +168,10 @@ Rules that keep prerendering correct:
 - Prerender reads local binding state (`.wrangler/state`); data that must come from production bindings at build time needs seeding or remote bindings.
 - Prerendered pages refresh only on the next build. Tell the user how content updates reach the site.
 
+**Prerendering is server-side rendering at build time:** crawlers and visitors get the same complete HTML as with SSR, served as a static file. It satisfies "SSR for every indexed page"; what it can't do is per-request content.
+
+**Nothing time- or visitor-dependent in prerendered markup.** A prerendered page renders once at build time and hydrates later in the visitor's browser; anything that differs between the two (the current year, "open now", countdowns, greetings, the visitor's city) causes a hydration mismatch, and React then re-renders the whole page in the browser. Compute such values after hydration (an effect), in a server-rendered route, or mark a single text node with `suppressHydrationWarning` when the build-time value is acceptable (the starter's footer year).
+
 Streaming SSR is the default (no `entry.server.tsx` in new projects): browsers get the shell immediately and suspended parts stream in; known bots get the complete document. Run `npx react-router reveal entry.server` only when you need custom headers, a CSP nonce or a different stream timeout.
 
 ## 8. Cloudflare bindings and the typed context
@@ -220,7 +226,7 @@ Bindings in `wrangler.jsonc` (add only what the project uses; then run `npm run 
 }
 ```
 
-- **Turnstile:** public site key in `vars`, secret via `wrangler secret put TURNSTILE_SECRET_KEY`. Verify every token server-side at `https://challenges.cloudflare.com/turnstile/v0/siteverify`; tokens are single-use and expire after 300 s. Test keys exist for development (site key `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA` always pass).
+- **Turnstile:** the public site key lives in `app/lib/site.ts` (`site.turnstileSiteKey`, so prerendered pages render the widget too; empty disables Turnstile), the secret via `wrangler secret put TURNSTILE_SECRET_KEY`. The starter fails closed when a site key is set but the secret is missing. Verify every token server-side at `https://challenges.cloudflare.com/turnstile/v0/siteverify`; tokens are single-use and expire after 300 s. Test keys exist for development (site key `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA` always pass).
 - **Email:** `env.EMAIL.send({ to, from, subject, text, html, replyTo })` through Cloudflare Email Service. Sending to your own verified destination addresses (lead notifications to the business) works on any plan; sending to arbitrary recipients requires onboarding the domain and Workers Paid. Alternatively use the business's existing email provider's HTTP API.
 - **Rate limiting:** `const { success } = await env.LEAD_LIMITER.limit({ key })`; periods are 10 or 60 seconds and counts are approximate per location, which is fine for spam protection.
 - **D1** for leads, orders and app data; **KV** for read-heavy config and cached content; **R2** for files and media; **Queues** for reliable background work (webhooks, emails) when volumes grow.
@@ -277,9 +283,14 @@ export const meta: Route.MetaFunction = ({ loaderData }) =>
 - **Security headers:** set them twice, because `_headers` applies only to static files (including prerendered HTML) and never to Worker responses: once in `public/_headers` for `/*`, and once in the Worker (the starter's `workers/app.ts` adds them). At minimum: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN` (or CSP `frame-ancestors`), a restrictive `Permissions-Policy`, and HSTS once HTTPS is stable.
 - **SSR responses aren't cached by Cloudflare's CDN**: Workers run in front of the cache, and zone cache rules don't apply to them. Options:
   1. Prerender (best for marketing pages).
-  2. **Workers Cache** (`"cache": { "enabled": true }` in `wrangler.jsonc`) caches the Worker's own responses according to `Cache-Control`, with tag-based purging (`Cache-Tag` header + `ctx.cache.purge`). Two cautions: a 200 *without* `Cache-Control` is cached heuristically (around 2 hours), and cookies are not part of the cache key, so personalised or session-dependent responses must send `Cache-Control: private, no-store` (the starter's root middleware sets that default; public routes opt in with a `headers` export). With Workers Cache enabled, every request, static assets included, is billed as a Worker request.
+  2. **Workers Cache** (`"cache": { "enabled": true }` in `wrangler.jsonc`) caches the Worker's own responses according to `Cache-Control`, with tag-based purging (`Cache-Tag` header + `ctx.cache.purge`). Two cautions: a 200 *without* `Cache-Control` is cached heuristically (around 2 hours), and cookies are not part of the cache key, so personalised or session-dependent responses must never be shared. The starter's root middleware therefore defaults every response to `Cache-Control: private, no-cache` (no shared caching, still back/forward-cache friendly); public routes opt in with a `headers` export, and logged-in areas use `private, no-store`. With Workers Cache enabled, every request, static assets included, is billed as a Worker request.
   3. Short browser caching (`max-age=60`) for semi-static SSR pages when neither of the above fits.
 - The route `headers` export applies to both the HTML document and the `.data` request of client navigations.
+
+### Third-party scripts and consent
+- Every third-party script (analytics, tag managers, chat, booking, review and map widgets) costs speed and privacy. Load the ones that remain after the user's choices with `defer`, after the main content, or on interaction (a "Load map" button, a chat bubble that loads the widget when clicked).
+- Cloudflare Web Analytics on Workers needs its beacon snippet added manually (`<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"…"}'>`, rendered from `root.tsx`).
+- When consent is required (cookie-setting tools in the EU), build a small consent banner yourself instead of a heavy consent platform: fixed to the bottom of the viewport (no layout shift), compact (so it can't become the LCP element), rendered after hydration from a stored choice (cookie or `localStorage`), with equal-weight Accept and Reject buttons and a link to the cookie policy. Load the tracking scripts only after consent, and offer a "Cookie settings" link in the footer to change the choice.
 
 ## 13. Fonts
 
@@ -370,6 +381,7 @@ Plenty of tutorials (and some official pages) predate React Router v8. Don't cop
 | Form POST returns 405 with an empty body | The form posts to a prerendered path: post to a server-rendered route instead |
 | Sitemap or canonical contains `localhost` | Built from `request.url` during prerender: use `absoluteUrl()` / `site.url` |
 | `create-react-router` fails behind a proxy | Run with `NODE_USE_ENV_PROXY=1` |
+| The scaffolder refuses the folder or the name | It needs a new, empty folder with a lowercase-hyphenated name: scaffold next to `DESIGN.md`/`design/`, then move them in (section 2) |
 | App renders with the Node entry or crashes on Workers | `@react-router/node`/`serve`/`express` is installed: remove it |
 | `Env` type is missing a binding | Run `npm run cf-typegen` after editing `wrangler.jsonc` |
 | A secret is missing from `Env` in CI only | `.dev.vars` is git-ignored, so `wrangler types` can't see it there: access secrets through a typed helper with optional fields (starter: `leadBindings`) |

@@ -42,8 +42,9 @@ Where to put it: the dedicated contact page, a final CTA section on most pages, 
 ## 3. Interaction details
 
 - **One step visible at a time**, with a simple "Step 2 of 4" (a thin bar alongside is fine). Progress that feels quick early on helps, and slow-feeling progress hurts, which is another reason to start with the easiest question. Show the time cost up front when it's low: "Takes about 30 seconds".
-- **Enter advances** to the next step from a text field; single-choice chips can auto-advance after a short (≈180ms) highlight, which feels responsive. Multi-select steps need an explicit Continue.
+- **Enter advances** to the next step from a text field. Single-choice chips can auto-advance after a short (≈180ms) highlight when chosen with a mouse or finger, which feels responsive; keyboard users move through radio options with the arrow keys, which also changes the selection, so for them nothing advances until they press Enter or Continue (otherwise the form would jump away on the first arrow press). Multi-select steps always need an explicit Continue.
 - **Back never loses answers.**
+- **Translate the interface text** (step counter, Continue, Back, Sending…, error and verification notices) for non-English sites: `StepForm` takes a `labels` prop, fed from `site.ui.form`.
 - **Validate per step**, on Continue and when a field loses focus, with specific, kind messages next to the field ("Add an email so we can reply", not "Invalid input"). Never validate while someone is still typing their first attempt; clear the error the moment it's fixed.
 - **Mark optional fields "(optional)"** and keep required fields unmarked. Pick that one convention and use it everywhere.
 - **Labels above fields**, always visible. Placeholders are for examples, not labels.
@@ -75,8 +76,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   const { env, ctx } = context.get(cloudflareContext);
   const form = await request.formData();
 
-  // 1. Honeypot: a hidden field humans never fill. Pretend success so bots learn nothing.
-  if (form.get('company_website')) return { ok: true };
+  // 1. Honeypot: a hidden field humans never fill (neutral name, so browsers don't autofill it). Pretend success so bots learn nothing.
+  if (form.get('ngd_hp')) return { ok: true };
 
   // 2. Validate on the server too: never trust the browser.
   const { values, errors } = parseLead(form); // your schema (hand-written or a small validator library)
@@ -84,19 +85,23 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   // 3. Bot check + rate limit.
   const ip = request.headers.get('CF-Connecting-IP') ?? '';
-  if (!(await verifyTurnstile(form.get('cf-turnstile-response'), ip, env.TURNSTILE_SECRET_KEY))) {
-    return data({ ok: false, errors: { form: 'Please confirm you are human and try again.' } }, { status: 400 });
+  if (site.turnstileSiteKey) {
+    const secret = leadBindings(env).TURNSTILE_SECRET_KEY;
+    if (!secret) return data({ ok: false, errors: { form: 'Form unavailable, please email us.' } }, { status: 503 }); // fail closed
+    if (!(await verifyTurnstile({ token: form.get('cf-turnstile-response'), secret, ip }))) {
+      return data({ ok: false, errors: { form: 'Please confirm you are human and try again.' } }, { status: 400 });
+    }
   }
 
-  // 4. Deliver: at least one durable sink must succeed before you report success.
-  await saveLead(env, values);                  // e.g. D1
-  ctx.waitUntil(notifyOwner(env, values));      // e.g. email / Slack / CRM webhook, after the response
+  // 4. Deliver: the lead must reach a destination before you report success.
+  if (!hasLeadDestination(env)) return data({ ok: false, errors: { form: 'Form unavailable, please email us.' } }, { status: 503 });
+  await deliverLead(env, ctx, values);          // D1 first (then email/webhook after the response), or email/webhook awaited
   return { ok: true };
 }
 ```
 
-- **Spam protection, layered:** honeypot field + Cloudflare Turnstile (server-side verification with the secret key) + a per-IP rate limit + server validation. Load the Turnstile script only when the form is about to be used (last step reached or form scrolled into view), so it never slows the first paint. The exact Turnstile, rate-limiting and email bindings are in architecture.md.
-- **Delivery options** (decided in discovery): store in D1 (simple, exportable, never lost), notify by email (Cloudflare's email sending, or the email provider the business already uses), forward to a CRM or automation webhook (secret URL in an env var), post to Slack/Teams. Store first, then notify, so a failing notification never loses a lead.
+- **Spam protection, layered:** honeypot field + Cloudflare Turnstile (server-side verification with the secret key) + a per-IP rate limit + server validation. The public site key lives in `app/lib/site.ts`, so forms on prerendered pages render the widget too. The script loads only when the last step is reached, so it never slows the first paint, and the form waits for the token before sending. The exact Turnstile, rate-limiting and email bindings are in architecture.md.
+- **Delivery options** (decided in discovery): store in D1 (simple, exportable, never lost), notify by email (Cloudflare's email sending, or the email provider the business already uses), forward to a CRM or automation webhook (secret URL in an env var), post to Slack/Teams. Store first, then notify, so a failing notification never loses a lead. Never answer "thanks" for a lead that reached no destination: the starter refuses submissions in production until a destination is configured, and shows the email/phone fallback instead.
 - **Idempotency:** disable double submits on the client; on the server, ignore an identical submission from the same IP within a few seconds.
 - **Never put secrets in client code.** Site keys are public; secret keys live in Worker secrets (`wrangler secret put`), and in `.dev.vars` locally (git-ignored).
 

@@ -7,10 +7,13 @@
  *   node screenshot.mjs http://localhost:5173/ --theme dark --full
  *
  * Options:
- *   --out <dir>        output directory (default: design/screenshots)
+ *   --out <dir>        output directory (default: design/screenshots; presets: <presets dir>/shots)
  *   --widths a,b,c     viewport widths for pages (default: 390,768,1440)
- *   --full             full-page screenshots (default: first 2 screens, which is what people judge)
+ *   --height <px>      viewport height (default: 844 below 600px wide, else 900); e.g. 630 for a 1200×630 OG image
+ *   --screens <n>      how many viewport heights to capture (default: 2); --full captures the whole page
+ *   --full             full-page screenshots
  *   --theme light|dark emulate prefers-color-scheme (default: light)
+ *   --motion           keep animations (default: reduced motion, so scroll reveals don't hide content)
  *   --presets          treat the input as an NGD presets file and capture each preset
  *   --wait <ms>        extra wait after load (default: 600)
  *
@@ -18,7 +21,7 @@
  * Exit code 1 if any page logged an uncaught error or failed to load, so it doubles as a smoke test.
  */
 import { mkdirSync } from 'node:fs';
-import { resolve, basename } from 'node:path';
+import { resolve, basename, dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
@@ -42,12 +45,15 @@ async function loadPlaywright() {
 }
 
 function parseArgs(argv) {
-  const o = { inputs: [], out: 'design/screenshots', widths: [390, 768, 1440], full: false, theme: 'light', presets: false, wait: 600 };
+  const o = { inputs: [], out: undefined, widths: [390, 768, 1440], height: undefined, screens: 2, full: false, theme: 'light', motion: false, presets: false, wait: 600 };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--out') o.out = argv[++i];
     else if (a === '--widths') o.widths = argv[++i].split(',').map(Number).filter(Boolean);
     else if (a === '--full') o.full = true;
+    else if (a === '--height') o.height = Number(argv[++i]);
+    else if (a === '--screens') o.screens = Math.max(1, Number(argv[++i]) || 1);
+    else if (a === '--motion') o.motion = true;
     else if (a === '--theme') o.theme = argv[++i];
     else if (a === '--presets') o.presets = true;
     else if (a === '--wait') o.wait = Number(argv[++i]);
@@ -55,6 +61,7 @@ function parseArgs(argv) {
     else o.inputs.push(a);
   }
   if (!o.inputs.length) throw new Error('Pass a presets file, a URL, or a base URL followed by paths.');
+  o.out ??= o.presets ? join(dirname(o.inputs[0]), 'shots') : 'design/screenshots';
   return o;
 }
 
@@ -65,7 +72,7 @@ async function capturePresets(browser, o) {
   const url = toUrl(o.inputs[0]);
   const files = [];
   const errors = [];
-  const page = await browser.newPage({ viewport: { width: 1472, height: 900 }, colorScheme: o.theme });
+  const page = await browser.newPage({ viewport: { width: 1472, height: 900 }, colorScheme: o.theme, reducedMotion: o.motion ? 'no-preference' : 'reduce' });
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForTimeout(o.wait);
@@ -96,15 +103,23 @@ async function capturePages(browser, o) {
   const errors = [];
   for (const target of targets) {
     for (const width of o.widths) {
-      const page = await browser.newPage({ viewport: { width, height: width < 600 ? 844 : 900 }, colorScheme: o.theme });
+      const viewportHeight = o.height ?? (width < 600 ? 844 : 900);
+      const page = await browser.newPage({
+        viewport: { width, height: viewportHeight },
+        colorScheme: o.theme,
+        reducedMotion: o.motion ? 'no-preference' : 'reduce',
+      });
       page.on('pageerror', (e) => errors.push(`${target} @${width}: ${e.message}`));
       page.on('console', (m) => m.type() === 'error' && errors.push(`${target} @${width}: console.error ${m.text()}`));
-      const res = await page.goto(target, { waitUntil: 'load' }).catch((e) => errors.push(`${target}: ${e.message}`));
+      const res = await page.goto(target, { waitUntil: 'load' }).catch((e) => {
+        errors.push(`${target}: ${e.message}`);
+        return null;
+      });
       if (res && res.status() >= 400) errors.push(`${target}: HTTP ${res.status()}`);
       await page.waitForTimeout(o.wait);
       const file = `${o.out}/${slug(target)}-${width}${o.theme === 'dark' ? '-dark' : ''}.png`;
       const height = await page.evaluate(() => document.documentElement.scrollHeight);
-      await page.screenshot({ path: file, fullPage: true, clip: o.full ? undefined : { x: 0, y: 0, width, height: Math.min(height, (width < 600 ? 844 : 900) * 2) } });
+      await page.screenshot({ path: file, fullPage: true, clip: o.full ? undefined : { x: 0, y: 0, width, height: Math.min(height, viewportHeight * o.screens) } });
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       if (overflow > 1) errors.push(`${target} @${width}: horizontal overflow of ${overflow}px`);
       files.push({ page: target, width, file });

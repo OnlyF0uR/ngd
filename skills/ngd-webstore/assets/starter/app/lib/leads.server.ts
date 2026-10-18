@@ -1,7 +1,8 @@
 /**
- * Lead handling: validation, storage and notification. Store first, then notify, so a failing
- * notification never loses a lead. Bindings are optional here so the starter runs before they exist;
- * declare the ones you use in wrangler.jsonc and run `npm run cf-typegen`.
+ * Lead handling: validation, storage and notification. A lead counts as received only when it
+ * reached at least one destination: stored in D1, or (without D1) delivered by email or webhook.
+ * Bindings are optional here so the starter runs before they exist; declare the ones you use in
+ * wrangler.jsonc and run `npm run cf-typegen`.
  */
 import { site } from './site';
 
@@ -9,7 +10,7 @@ export type Lead = {
   name: string;
   email: string;
   phone?: string;
-  /** Every other answered question, by field name */
+  /** Every other answered question, by field name (including source page and utm_* parameters) */
   answers: Record<string, string | string[]>;
   source?: string;
 };
@@ -29,7 +30,7 @@ type LeadBindings = {
 export const leadBindings = (env: Env) => env as Env & LeadBindings;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const RESERVED = new Set(['name', 'email', 'phone', 'source', 'company_website', 'cf-turnstile-response']);
+const RESERVED = new Set(['name', 'email', 'phone', 'source', 'ngd_hp', 'cf-turnstile-response']);
 
 /** Server-side validation. Never trust the browser, even though the form validates too. */
 export function parseLead(form: FormData): { lead: Lead; errors?: undefined } | { lead?: undefined; errors: Record<string, string> } {
@@ -53,17 +54,31 @@ export function parseLead(form: FormData): { lead: Lead; errors?: undefined } | 
   return { lead: { name, email, phone: phone || undefined, answers, source: text('source', 300) || undefined } };
 }
 
-/** Durable storage in D1 (see migrations/0001_leads.sql). */
-export async function saveLead(env: Env, lead: Lead) {
-  const { DB } = leadBindings(env);
-  if (!DB) return;
-  await DB.prepare('INSERT INTO leads (name, email, phone, answers, source_path) VALUES (?, ?, ?, ?, ?)')
-    .bind(lead.name, lead.email, lead.phone ?? null, JSON.stringify(lead.answers), lead.source ?? null)
-    .run();
+/** Is any destination configured? Without one, submissions must not pretend to succeed. */
+export function hasLeadDestination(env: Env) {
+  const b = leadBindings(env);
+  return Boolean(b.DB || (b.EMAIL && b.LEAD_NOTIFY_TO && b.LEAD_NOTIFY_FROM) || b.LEAD_WEBHOOK_URL);
 }
 
-/** Notify the business: email (Cloudflare Email Service) and/or a CRM or automation webhook. */
-export async function notifyOwner(env: Env, lead: Lead) {
+/**
+ * Store first (durable), then notify after the response. Without D1, the notification itself must
+ * succeed before the visitor sees "thanks". Throws when the lead reached no destination.
+ */
+export async function deliverLead(env: Env, ctx: ExecutionContext, lead: Lead) {
+  const { DB } = leadBindings(env);
+  if (DB) {
+    await DB.prepare('INSERT INTO leads (name, email, phone, answers, source_path) VALUES (?, ?, ?, ?, ?)')
+      .bind(lead.name, lead.email, lead.phone ?? null, JSON.stringify(lead.answers), lead.source ?? null)
+      .run();
+    ctx.waitUntil(notifyOwner(env, lead));
+    return;
+  }
+  const delivered = await notifyOwner(env, lead);
+  if (delivered === 0) throw new Error('Lead reached no destination (no D1, and email/webhook delivery failed or is not configured)');
+}
+
+/** Email (Cloudflare Email Service) and/or CRM/automation webhook. Returns how many channels succeeded. */
+export async function notifyOwner(env: Env, lead: Lead): Promise<number> {
   const { EMAIL, LEAD_NOTIFY_TO, LEAD_NOTIFY_FROM, LEAD_WEBHOOK_URL } = leadBindings(env);
   const lines = [
     `Name: ${lead.name}`,
@@ -86,10 +101,15 @@ export async function notifyOwner(env: Env, lead: Lead) {
     );
   }
   if (LEAD_WEBHOOK_URL) {
-    tasks.push(fetch(LEAD_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lead) }));
+    tasks.push(
+      fetch(LEAD_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lead) }).then((res) => {
+        if (!res.ok) throw new Error(`Webhook answered ${res.status}`);
+      }),
+    );
   }
   const results = await Promise.allSettled(tasks);
   for (const r of results) if (r.status === 'rejected') console.error('Lead notification failed', r.reason);
+  return results.filter((r) => r.status === 'fulfilled').length;
 }
 
 /** Approximate per-key limit (per Cloudflare location). Good enough to stop form spam bursts. */

@@ -49,7 +49,7 @@ Rules of thumb:
 
 ## 3. Building the file
 
-1. **Tokens.** Generate with `node scripts/palette.mjs --brand "#hex"` (add `--mode light` or `--mode dark` if the user chose one). Use the exact output in the presets so what they approve is what ships.
+1. **Tokens.** Generate with `node <skill-dir>/scripts/palette.mjs --brand "#hex"` (add `--mode light` or `--mode dark` if the user chose one; dark or light bands keep working either way). Use the exact output in the presets so what they approve is what ships.
 2. **Copy the shell** `assets/presets-shell.html` to `design/presets/round-1.html`. It contains the viewer: preset tabs, desktop/tablet/mobile and overview modes, a light/dark toggle, a notes drawer, keyboard shortcuts, placeholder and skeleton helpers, and an icon sprite (`<svg class="i"><use href="#i-arrow-right"/></svg>`; see the symbols in the file for the full list).
 3. **Paste the tokens** into `<style id="tokens">`, set the `<title>` and toolbar name.
 4. **Fonts.** In this temporary file only, load the proposed families from Google Fonts with `<link>` (only the weights you use). Always give a system fallback stack: the file must still read well offline.
@@ -59,11 +59,13 @@ Rules of thumb:
 8. **Interactive bits:** a tiny inline script is fine to demo something essential — the first two steps of the conversational form, a variant picker, a sidebar collapse. Keep it under ~40 lines and make it scoped to its preset.
 9. **Content parity.** Use the same draft copy across presets, adapted only where the layout demands. That way the user compares design, not wording. One exception is welcome: a preset can show a different headline angle if you say so in its notes.
 
-Keep the file self-contained (no external scripts or CSS frameworks), and under ~400 KB (no base64-embedded photos; reference local images by relative path).
+**Write it incrementally.** Create the file from the shell with the tokens first, then add one preset per edit (markup, scoped CSS and notes together), checking each as you go. Writing all five in a single response risks hitting output limits and makes fixes harder.
+
+Keep the file self-contained (no external scripts or CSS frameworks) and lean: aim for under about 150 KB. No base64-embedded photos; reference local images by relative path.
 
 ## 4. Checking your work before showing it
 
-Run `node scripts/screenshot.mjs design/presets/round-1.html --presets --out design/presets/shots`. It captures every preset at desktop and mobile width and reports runtime errors. Then **look at the screenshots** yourself and fix:
+Run `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets` from the project folder. It captures every preset at desktop and mobile width into `design/presets/shots/` and reports runtime errors. If Playwright isn't available, open the file in a browser if you can, or review the markup carefully, and tell the user the screenshots were skipped. Then **look at the screenshots** yourself and fix:
 - anything broken at 390px (overflow, text overlapping images, cramped nav);
 - presets that look too similar to each other: push the difference further;
 - presets that look generic: check the anti-patterns list in design-language.md (centred-everything, three identical icon cards, purple gradients for no reason, stock-photo clichés);

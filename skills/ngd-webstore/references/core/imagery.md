@@ -67,7 +67,7 @@ Targets: hero image under ~200 KB at mobile width, most content images under ~10
 
 - **Formats:** AVIF first, WebP fallback via `<picture>`, or just WebP when simplicity matters (support is universal). JPEG/PNG only as last fallback; SVG for logos and icons.
 - **Responsive sizes:** generate widths such as 480, 768, 1080, 1440, 1920 (2560 only for full-bleed heroes) and serve them with `srcset` + an accurate `sizes`.
-- **Where to generate variants:** a build step (an `optimize-images` script with `sharp`, run in Node at build time, writing to `public/images/`) is simplest and free. Cloudflare Images or Image Transformations can resize on the fly at the edge; use them when the catalogue is large or managed by non-developers (see architecture.md for the binding). Image processing libraries like `sharp` don't run inside a Worker; do that work at build time or through Cloudflare.
+- **Where to generate variants:** at build time with `vite-imagetools` (the starter's default): import the image with a query (`?w=640;1280;1920&format=avif;webp&as=picture`) and Vite writes hashed files under `/assets/`, which the long-cache rule covers. Cloudflare Images or Image Transformations can resize on the fly at the edge; use them when the catalogue is large or managed by non-developers (see architecture.md for the binding). Image processing (`sharp`) never runs inside a Worker.
 - **Dimensions:** always set `width` and `height` (or `aspect-ratio`) so nothing shifts while loading.
 - **Priority:** the LCP image gets `fetchpriority="high"`, no lazy loading, and a `<link rel="preload" as="image" imagesrcset=… imagesizes=…>` from the route's `links` export when it isn't discoverable early. Everything else gets `loading="lazy" decoding="async"`.
 - **Placeholders:** a dominant-color background (or a tiny blurred inline image) on the image's wrapper, so space isn't a white hole while loading.
@@ -76,7 +76,7 @@ Targets: hero image under ~200 KB at mobile width, most content images under ~10
 
 ## 7. The image component contract
 
-Wrap these rules in one shared component (for example `app/components/Image/Image.tsx`) so no page can forget them. It should:
+Wrap these rules in one shared component (the starter's `app/components/media/Image/Image.tsx`) so no page can forget them. It should:
 - require `alt` (empty string allowed for decorative images), `width` and `height`;
 - build `srcset` from the available widths and accept a `sizes` prop (with a sensible default);
 - accept `priority` to switch to `fetchpriority="high"` and eager loading, otherwise lazy;
@@ -88,8 +88,9 @@ Wrap these rules in one shared component (for example `app/components/Image/Imag
 - **Icons:** one consistent set and stroke width (1.5–2px at 24px). Use an icon package that tree-shakes per icon (for example `lucide-react`), or inline SVG components. Never an icon font. Icons inherit `currentColor`.
 - **Logos:** SVG, optimised (SVGO). Provide a version for dark backgrounds. Client logo walls in a single monochrome tone.
 - **Illustrations and 3D objects:** one style throughout. Export SVG for flat illustration; WebP/AVIF with transparency for 3D renders.
-- **Favicon set:** SVG favicon (with a dark-mode media query inside if needed), 180×180 apple-touch-icon, 192/512 PNG for the web manifest.
-- **Social card (OG image):** 1200×630, legible at thumbnail size, brand-consistent. A default for the site, plus specific ones for key pages (articles, products).
+- **Favicon set:** SVG favicon (with a dark-mode media query inside if needed), 180×180 apple-touch-icon, 192/512 PNG for the web manifest, linked from `root.tsx`.
+- **Social card (OG image):** 1200×630, legible at thumbnail size, brand-consistent. A default for the site, plus specific ones for key pages (articles, products). A quick way to make them: design the card as a small HTML page using the site's tokens and fonts (`design/og/home.html`), then capture it with `node <skill-dir>/scripts/screenshot.mjs design/og/home.html --widths 1200 --height 630 --screens 1 --out public/og` and rename the file. Reference it with an absolute URL through `seo({ image })`.
+- **Favicons:** export the SVG mark, then PNGs (180×180 apple-touch-icon, 192 and 512 for the manifest); the same screenshot trick works for PNGs from an HTML page with the mark centred.
 
 ## 9. Video
 

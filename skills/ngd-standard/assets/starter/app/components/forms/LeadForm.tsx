@@ -1,18 +1,21 @@
 import { Link } from 'react-router';
+import { site } from '~/lib/site';
 import { StepForm, Step, Choices, Field } from './StepForm/StepForm';
 
 /**
- * The site's lead form, defined once and used on the contact page and in CTA sections.
+ * The site's lead form, defined once and used on the contact page and in CTA sections (including
+ * prerendered pages: it always posts to the server-rendered /contact action).
  * Adapt the steps to what the business needs to qualify a lead (references/core/forms.md).
- * The Turnstile site key is public; set it here or read it from loader data.
  */
-export function LeadForm({ turnstileSiteKey }: { turnstileSiteKey?: string }) {
+export function LeadForm() {
+  const privacy = site.legal.find((page) => page.href.includes('privacy'));
   return (
     <StepForm
       action="/contact"
       submitLabel="Send my request"
       timeHint="Takes about 30 seconds"
-      turnstileSiteKey={turnstileSiteKey}
+      turnstileSiteKey={site.turnstileSiteKey}
+      labels={site.ui.form}
       success={
         <>
           <h3>Thanks, we’ve got it.</h3>
@@ -21,7 +24,8 @@ export function LeadForm({ turnstileSiteKey }: { turnstileSiteKey?: string }) {
       }
       footnote={
         <>
-          We only use your details to answer your request. <Link to="/privacy">Privacy policy</Link>
+          We only use your details to answer your request.{' '}
+          {privacy && <Link to={privacy.href}>{privacy.label} policy</Link>}
         </>
       }
     >
@@ -32,7 +36,7 @@ export function LeadForm({ turnstileSiteKey }: { turnstileSiteKey?: string }) {
         <Choices name="timing" required options={['As soon as possible', 'Within a month', 'Just exploring']} />
       </Step>
       <Step title="Anything we should know?" hint="Optional, but it helps us prepare.">
-        <Field label="Your message" name="message" multiline required={false} placeholder="For example: what you’ve tried so far" />
+        <Field label="Your message" name="message" multiline required={false} hint="For example: what you’ve tried so far" />
       </Step>
       <Step title="How can we reach you?">
         <Field label="Name" name="name" autoComplete="name" errorMessage="Add your name so we know who to reply to" />

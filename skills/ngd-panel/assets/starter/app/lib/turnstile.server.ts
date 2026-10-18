@@ -2,8 +2,15 @@
  * Server-side Turnstile verification. The widget alone protects nothing: every token must be
  * checked here. Tokens are single-use and expire after 300 seconds.
  */
-export async function verifyTurnstile(token: FormDataEntryValue | null, secret: string | undefined, ip?: string): Promise<boolean> {
-  if (!secret) return true; // Turnstile not configured (local development without a secret)
+export async function verifyTurnstile({
+  token,
+  secret,
+  ip,
+}: {
+  token: FormDataEntryValue | null;
+  secret: string;
+  ip?: string;
+}): Promise<boolean> {
   if (typeof token !== 'string' || token.length === 0 || token.length > 2048) return false;
 
   const body = new FormData();

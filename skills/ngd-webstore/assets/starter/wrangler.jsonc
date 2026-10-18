@@ -11,10 +11,9 @@
 		// Prerendered pages are written as /about/index.html; serve them at /about without a redirect.
 		"html_handling": "drop-trailing-slash"
 	},
-	"vars": {
-		// Public values only. Secrets: `npx wrangler secret put NAME` (and .dev.vars locally).
-		"TURNSTILE_SITE_KEY": "1x00000000000000000000AA"
-	},
+	// Public, environment-specific values go in "vars"; secrets via `npx wrangler secret put NAME` (and .dev.vars locally).
+	// Site facts (production URL, contact details, Turnstile site key) live in app/lib/site.ts.
+	"vars": {},
 	"observability": {
 		"enabled": true
 	},

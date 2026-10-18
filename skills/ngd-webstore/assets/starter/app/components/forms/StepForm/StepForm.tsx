@@ -1,6 +1,7 @@
 import {
   Children,
   createContext,
+  Fragment,
   isValidElement,
   useContext,
   useEffect,
@@ -34,12 +35,32 @@ import styles from './StepForm.module.css';
 
 export type LeadActionData = { ok: boolean; errors?: Record<string, string> };
 
-const ErrorsContext = createContext<Record<string, string>>({});
+export type StepFormLabels = {
+  /** "Step {current} of {total}" */
+  step: string;
+  continue: string;
+  back: string;
+  sending: string;
+  optional: string;
+  /** Shown when someone submits before the bot check has produced a token */
+  verifying: string;
+};
+
+const DEFAULT_LABELS: StepFormLabels = {
+  step: 'Step {current} of {total}',
+  continue: 'Continue',
+  back: 'Back',
+  sending: 'Sending…',
+  optional: '(optional)',
+  verifying: 'One moment, we’re checking that you’re not a robot. Then press send again.',
+};
+
+const FormContext = createContext<{ errors: Record<string, string>; labels: StepFormLabels }>({ errors: {}, labels: DEFAULT_LABELS });
 
 type StepProps = {
   title: string;
   hint?: ReactNode;
-  /** Single-choice steps: advance automatically after a choice is made */
+  /** Single-choice steps: advance automatically after a choice made by pointer (mouse/touch). Keyboard users press Continue. */
   autoAdvance?: boolean;
   children: ReactNode;
 };
@@ -59,34 +80,50 @@ type StepFormProps = {
   footnote?: ReactNode;
   /** "Takes about 30 seconds" */
   timeHint?: string;
-  /** Public Turnstile site key; the server verifies the token */
+  /** Public Turnstile site key; the server verifies the token. Empty or undefined disables the widget. */
   turnstileSiteKey?: string;
+  /** Interface text (translate for non-English sites) */
+  labels?: Partial<StepFormLabels>;
   children: ReactNode;
 };
 
 // Structural type: the Workers runtime types redeclare the global `Element`, which breaks DOM generics like HTMLSelectElement.
-type Control = HTMLElement & { name: string; validationMessage: string; checkValidity(): boolean };
+type Control = HTMLElement & { name: string; type?: string; validationMessage: string; checkValidity(): boolean };
 
-export function StepForm({ action = '/contact', submitLabel = 'Send', success, footnote, timeHint, turnstileSiteKey, children }: StepFormProps) {
+/** Steps may be wrapped in fragments or produced by .map(); flatten them. */
+function collectSteps(children: ReactNode): ReactElement<StepProps>[] {
+  return Children.toArray(children).flatMap((child) => {
+    if (!isValidElement(child)) return [];
+    if (child.type === Fragment) return collectSteps((child.props as { children?: ReactNode }).children);
+    return child.type === Step ? [child as ReactElement<StepProps>] : [];
+  });
+}
+
+export function StepForm({ action = '/contact', submitLabel = 'Send', success, footnote, timeHint, turnstileSiteKey, labels: labelOverrides, children }: StepFormProps) {
+  const labels = { ...DEFAULT_LABELS, ...labelOverrides };
   const fetcher = useFetcher<LeadActionData>();
   const location = useLocation();
   // Without JavaScript the browser posts to the action route and that page renders the result
   const pageActionData = useActionData() as LeadActionData | undefined;
   const actionData = location.pathname === action ? pageActionData : undefined;
-  const steps = Children.toArray(children).filter((c): c is ReactElement<StepProps> => isValidElement(c) && c.type === Step);
+  const steps = collectSteps(children);
   const last = steps.length - 1;
 
   const [index, setIndex] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [reachedLast, setReachedLast] = useState(false);
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [notice, setNotice] = useState<string | null>(null);
   const [turnstileReset, setTurnstileReset] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
   const titleRefs = useRef<(HTMLElement | null)[]>([]);
   const successRef = useRef<HTMLDivElement>(null);
+  const pointerChoice = useRef(false);
 
   const result = fetcher.data ?? actionData;
-  const serverErrors = result?.errors ?? {};
+  const serverErrors = Object.fromEntries(Object.entries(result?.errors ?? {}).filter(([name]) => !dismissed.has(name)));
+  const errors = { ...clientErrors, ...serverErrors };
   const submitting = fetcher.state !== 'idle';
 
   useEffect(() => setHydrated(true), []);
@@ -97,6 +134,7 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
   // After a server response: focus the success message, or jump to the step with the first failing field.
   useEffect(() => {
     if (!result) return;
+    setDismissed(new Set());
     if (result.ok) {
       successRef.current?.focus();
       return;
@@ -111,28 +149,32 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
     return formRef.current ? [...formRef.current.querySelectorAll<HTMLFieldSetElement>('fieldset[data-step]')] : [];
   }
 
-  function controlsOf(i: number): Control[] {
-    const fieldset = stepElements()[i];
-    return fieldset ? ([...fieldset.querySelectorAll<HTMLElement>('input:not([type=hidden]), textarea, select')] as Control[]) : [];
-  }
-
   function validate(i: number) {
+    const fieldset = stepElements()[i];
+    if (!fieldset) return true;
+    const controls = [...fieldset.querySelectorAll<HTMLElement>('input:not([type=hidden]), textarea, select')] as Control[];
     const found: Record<string, string> = {};
-    for (const control of controlsOf(i)) {
+    for (const control of controls) {
       if (!control.checkValidity() && !found[control.name]) found[control.name] = control.dataset.error || control.validationMessage;
+    }
+    // Checkbox groups marked required need at least one checked box (native validation can't express that)
+    for (const group of fieldset.querySelectorAll<HTMLElement>('[data-required-group]')) {
+      const name = group.dataset.requiredGroup!;
+      if (!group.querySelector('input:checked')) found[name] = group.dataset.error || 'Choose at least one option';
     }
     setClientErrors((prev) => {
       const next = { ...prev };
-      for (const control of controlsOf(i)) delete next[control.name];
+      for (const control of controls) delete next[control.name];
       return { ...next, ...found };
     });
     const first = Object.keys(found)[0];
-    if (first) formRef.current?.querySelector<HTMLElement>(`[name="${CSS.escape(first)}"]`)?.focus();
+    if (first) fieldset.querySelector<HTMLElement>(`[name="${CSS.escape(first)}"]`)?.focus();
     return !first;
   }
 
   function goTo(i: number) {
     setIndex(i);
+    setNotice(null);
     requestAnimationFrame(() => titleRefs.current[i]?.focus());
   }
 
@@ -157,8 +199,12 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
         const { [target.name]: _removed, ...rest } = prev;
         return rest;
       });
+      setDismissed((prev) => (prev.has(target.name) ? prev : new Set(prev).add(target.name)));
     }
-    if (steps[index]?.props.autoAdvance && target.type === 'radio' && index < last) window.setTimeout(next, 180);
+    // Arrow keys also change radio selections, so only a pointer choice may advance (WCAG 3.2.2)
+    const byPointer = pointerChoice.current;
+    pointerChoice.current = false;
+    if (byPointer && steps[index]?.props.autoAdvance && target.type === 'radio' && index < last) window.setTimeout(next, 180);
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -168,6 +214,11 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
         goTo(i);
         return;
       }
+    }
+    const token = formRef.current?.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]')?.value;
+    if (turnstileSiteKey && hydrated && !token) {
+      event.preventDefault();
+      setNotice(labels.verifying);
     }
   }
 
@@ -180,7 +231,7 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
   }
 
   return (
-    <ErrorsContext.Provider value={{ ...clientErrors, ...serverErrors }}>
+    <FormContext.Provider value={{ errors, labels }}>
       <fetcher.Form
         ref={formRef}
         method="post"
@@ -188,13 +239,14 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
         noValidate={hydrated}
         className={hydrated ? `${styles.form} ${styles.enhanced}` : styles.form}
         onKeyDown={onKeyDown}
+        onPointerDown={() => {
+          pointerChoice.current = true;
+        }}
         onChange={onChange}
         onSubmit={onSubmit}
       >
         <div className={styles.meta}>
-          <p aria-live="polite">
-            Step {index + 1} of {steps.length}
-          </p>
+          <p aria-live="polite">{labels.step.replace('{current}', String(index + 1)).replace('{total}', String(steps.length))}</p>
           {timeHint && <p>{timeHint}</p>}
         </div>
         <div className={styles.progress} aria-hidden="true">
@@ -207,10 +259,11 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
           [...new URLSearchParams(location.search)]
             .filter(([key]) => key.startsWith('utm_'))
             .map(([key, value]) => <input key={key} type="hidden" name={key} value={value.slice(0, 200)} />)}
+        {/* Honeypot: humans never see or fill it. A neutral name so browsers don't autofill it. */}
         <div className={styles.honeypot} aria-hidden="true">
           <label>
             Leave this field empty
-            <input type="text" name="company_website" tabIndex={-1} autoComplete="off" />
+            <input type="text" name="ngd_hp" tabIndex={-1} autoComplete="off" />
           </label>
         </div>
 
@@ -233,30 +286,30 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
             <div className={styles.nav}>
               {i > 0 && (
                 <button type="button" className={styles.back} onClick={back}>
-                  Back
+                  {labels.back}
                 </button>
               )}
               {i < last ? (
                 <button type="button" className={styles.next} onClick={next}>
-                  Continue
+                  {labels.continue}
                 </button>
               ) : (
                 <button type="submit" className={styles.next} disabled={submitting}>
-                  {submitting ? 'Sending…' : submitLabel}
+                  {submitting ? labels.sending : submitLabel}
                 </button>
               )}
             </div>
           </fieldset>
         ))}
 
-        {serverErrors.form && (
+        {(notice || serverErrors.form) && (
           <p className={styles.formError} role="alert">
-            {serverErrors.form}
+            {notice ?? serverErrors.form}
           </p>
         )}
         {footnote && <div className={styles.footnote}>{footnote}</div>}
       </fetcher.Form>
-    </ErrorsContext.Provider>
+    </FormContext.Provider>
   );
 }
 
@@ -271,6 +324,7 @@ type FieldProps = {
   required?: boolean;
   autoComplete?: string;
   inputMode?: 'text' | 'email' | 'tel' | 'url' | 'numeric' | 'decimal' | 'search';
+  /** Help or an example ("For example: …"); placeholders are not labels or hints */
   hint?: string;
   placeholder?: string;
   /** Message shown when the field is missing or invalid, e.g. "Add an email so we can reply" */
@@ -294,7 +348,8 @@ export function Field({
   rows = 4,
 }: FieldProps) {
   const id = useId();
-  const error = useContext(ErrorsContext)[name];
+  const { errors, labels } = useContext(FormContext);
+  const error = errors[name];
   const describedBy = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined;
   const shared = {
     id,
@@ -312,7 +367,7 @@ export function Field({
     <div className={styles.field}>
       <label htmlFor={id} className={styles.label}>
         {label}
-        {!required && <span className={styles.optional}> (optional)</span>}
+        {!required && <span className={styles.optional}> {labels.optional}</span>}
       </label>
       {hint && (
         <p id={`${id}-hint`} className={styles.fieldHint}>
@@ -336,16 +391,22 @@ type ChoicesProps = {
   options: ChoiceOption[];
   /** Checkboxes instead of radio buttons */
   multiple?: boolean;
+  /** Radios: one must be chosen. Checkboxes: at least one must be checked. */
   required?: boolean;
   errorMessage?: string;
 };
 
 /** Tappable chips backed by real radio/checkbox inputs (keyboard and screen readers work natively). */
-export function Choices({ name, options, multiple = false, required = false, errorMessage = 'Choose one of the options' }: ChoicesProps) {
+export function Choices({ name, options, multiple = false, required = false, errorMessage }: ChoicesProps) {
   const id = useId();
-  const error = useContext(ErrorsContext)[name];
+  const error = useContext(FormContext).errors[name];
+  const message = errorMessage ?? (multiple ? 'Choose at least one option' : 'Choose one of the options');
   return (
-    <div className={styles.choices}>
+    <div
+      className={styles.choices}
+      data-required-group={multiple && required ? name : undefined}
+      data-error={multiple && required ? message : undefined}
+    >
       {options.map((option) => {
         const { value, label, description } = typeof option === 'string' ? { value: option, label: option, description: undefined } : option;
         return (
@@ -355,7 +416,7 @@ export function Choices({ name, options, multiple = false, required = false, err
               name={name}
               value={value}
               required={required && !multiple}
-              data-error={errorMessage}
+              data-error={message}
               aria-describedby={error ? `${id}-error` : undefined}
             />
             <span>

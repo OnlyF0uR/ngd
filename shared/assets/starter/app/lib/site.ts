@@ -1,6 +1,7 @@
 /**
- * Single source of truth for site-wide facts. The header, footer, contact page, JSON-LD,
- * sitemap and robots.txt all read from here, so a phone number or URL changes in one place.
+ * Single source of truth for site-wide facts and interface text. The header, footer, forms,
+ * contact page, JSON-LD, sitemap and robots.txt all read from here, so a phone number, URL or
+ * button label changes in one place. Translate `ui` for non-English sites.
  */
 export const site = {
   name: 'Studio Example',
@@ -14,6 +15,10 @@ export const site = {
   description: 'One-sentence description of what the business offers and for whom.',
   defaultOgImage: '/og/default.jpg',
   logo: '/logo.png',
+  /** Public Turnstile site key (not a secret). This is Cloudflare's always-passing TEST key, so local
+   *  development works with the test secret in .dev.vars. Replace it with the real key before launch.
+   *  An empty string disables Turnstile entirely (client and server). */
+  turnstileSiteKey: '1x00000000000000000000AA',
   contact: {
     email: 'hello@example.com',
     phone: '+31 20 123 4567',
@@ -33,6 +38,36 @@ export const site = {
     { label: 'Contact', href: '/contact' },
   ],
   primaryCta: { label: 'Get in touch', href: '/contact' },
+  /** Legal pages linked from the footer and forms. Create the routes before launch. */
+  legal: [
+    { label: 'Privacy', href: '/privacy' },
+    { label: 'Terms', href: '/terms' },
+  ],
+  /** Interface text used by the starter components. */
+  ui: {
+    skipToContent: 'Skip to content',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
+    mainNav: 'Main',
+    mobileNav: 'Mobile',
+    footerNav: 'Footer',
+    footerExplore: 'Explore',
+    footerContact: 'Contact',
+    home: 'Home',
+    notFoundTitle: 'We couldn’t find that page',
+    notFoundText: 'The link may be broken or the page may have moved. These might help:',
+    errorTitle: 'Something went wrong',
+    errorText: 'Please try again in a moment. If it keeps happening, contact us and we’ll sort it out.',
+    helpfulLinks: 'Helpful links',
+    form: {
+      step: 'Step {current} of {total}',
+      continue: 'Continue',
+      back: 'Back',
+      sending: 'Sending…',
+      optional: '(optional)',
+      verifying: 'One moment, we’re checking that you’re not a robot. Then press send again.',
+    },
+  },
 } as const;
 
 export const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;

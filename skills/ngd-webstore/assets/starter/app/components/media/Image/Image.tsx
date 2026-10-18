@@ -36,7 +36,7 @@ export function Image(props: ImageProps) {
   const { alt, priority = false, sizes = '100vw', placeholder, className } = props;
   const loading = priority ? 'eager' : 'lazy';
   const fetchPriority = priority ? 'high' : 'auto';
-  const style: CSSProperties | undefined = placeholder ? { backgroundColor: placeholder } : undefined;
+  const style = placeholder ? ({ '--placeholder': placeholder } as CSSProperties) : undefined;
   const classes = [styles.image, className].filter(Boolean).join(' ');
 
   if (props.picture) {

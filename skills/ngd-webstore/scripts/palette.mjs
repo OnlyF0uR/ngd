@@ -2,16 +2,18 @@
 /**
  * NGD palette generator — turns ONE theme color into an accessible design-token set.
  *
- *   node palette.mjs --brand "#5e6ad2"                       # CSS tokens to stdout (light + dark)
- *   node palette.mjs --brand "#5e6ad2" --out app/styles/tokens.css
- *   node palette.mjs --brand "#5e6ad2" --mode light          # light-only site
- *   node palette.mjs --brand "#5e6ad2" --format json
+ *   node palette.mjs --brand "#0f766e"                       # CSS tokens to stdout (light + dark)
+ *   node palette.mjs --brand "#0f766e" --out app/styles/tokens.css
+ *   node palette.mjs --brand "#0f766e" --mode light          # light by default (dark bands still work)
+ *   node palette.mjs --brand "#0f766e" --format json
  *   node palette.mjs --candidates "#0f766e,#e4572e,#6d28d9"  # compare theme-color options
  *   node palette.mjs --candidates "..." --preview swatches.html
  *
  * Options:
  *   --brand <hex>        theme color (required unless --candidates)
- *   --mode both|light|dark   which color schemes to emit (default: both)
+ *   --mode both|light|dark   default scheme: both = follow the OS (default); light/dark = fixed default.
+ *                        Both token sets are always emitted, so [data-theme] bands (a dark section on a
+ *                        light page) keep working.
  *   --tint 0..1          how much the neutrals lean toward the brand hue (default 0.5)
  *   --prefer-dark-text   keep the raw brand as CTA background and use dark labels on it
  *   --format css|json    output format (default css)
@@ -21,7 +23,8 @@
  * Zero dependencies, Node 18+. Color math: sRGB <-> OKLab/OKLCH, chroma-reduction gamut
  * mapping, WCAG 2.x contrast. Every emitted text/background pair is contrast-checked.
  */
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 // ---------------------------------------------------------------- color math
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -214,6 +217,11 @@ function semantic(mode, brandHex, brand, neutrals, opts, notes) {
   t['--color-text-inverse'] = light ? neutrals[50] : neutrals[950];
   t['--color-border'] = light ? neutrals[200] : neutrals[800];
   t['--color-border-strong'] = light ? neutrals[300] : neutrals[700];
+  // Form controls (inputs, chips, checkboxes) need a 3:1 boundary (WCAG 1.4.11); pick the subtlest neutral that passes
+  const inputStep = light
+    ? [300, 400, 500, 600].find((s) => contrast(neutrals[s], neutrals[0]) >= 3 && contrast(neutrals[s], neutrals[50]) >= 3)
+    : [700, 600, 500, 400].find((s) => contrast(neutrals[s], neutrals[1000]) >= 3 && contrast(neutrals[s], neutrals[950]) >= 3);
+  t['--color-border-input'] = neutrals[inputStep ?? (light ? 600 : 400)];
   t['--color-scrim'] = light ? 'rgb(0 0 0 / 0.45)' : 'rgb(0 0 0 / 0.6)';
 
   const bg = t['--color-bg'];
@@ -260,9 +268,13 @@ function semantic(mode, brandHex, brand, neutrals, opts, notes) {
       notes.push(`dark mode: CTAs use brand-${accentStep} (${ramp[accentStep]}) so they stand out on the dark background.`);
     }
   }
+  // Hover/active move toward MORE contrast with the label (darker under white labels, lighter under ink),
+  // so the label stays readable in every state.
   const accentIdx = STEPS.indexOf(accentStep);
-  const hoverStep = light ? STEPS[Math.min(accentIdx + 1, STEPS.length - 1)] : STEPS[Math.max(accentIdx - 1, 0)];
-  const activeStep = light ? STEPS[Math.min(accentIdx + 2, STEPS.length - 1)] : STEPS[Math.max(accentIdx - 2, 0)];
+  const direction = label.name === 'white' ? 1 : -1;
+  const stepAt = (offset) => STEPS[Math.min(Math.max(accentIdx + direction * offset, 0), STEPS.length - 1)];
+  const hoverStep = stepAt(1);
+  const activeStep = stepAt(2);
   t['--color-accent'] = ramp[accentStep];
   t['--color-accent-hover'] = ramp[hoverStep];
   t['--color-accent-active'] = ramp[activeStep];
@@ -284,11 +296,14 @@ function semantic(mode, brandHex, brand, neutrals, opts, notes) {
     ['text-muted on bg', t['--color-text-muted'], bg, 4.5],
     ['text-muted on bg-subtle', t['--color-text-muted'], t['--color-bg-subtle'], 4.5],
     ['on-accent on accent', t['--color-on-accent'], t['--color-accent'], 4.5],
+    ['on-accent on accent-hover', t['--color-on-accent'], t['--color-accent-hover'], 4.5],
+    ['on-accent on accent-active', t['--color-on-accent'], t['--color-accent-active'], 4.5],
     ['accent-text on bg', t['--color-accent-text'], bg, 4.5],
     ['accent-text on accent-subtle', t['--color-accent-text'], subtle, 4.5],
     ['focus ring vs bg', t['--color-focus'], bg, 3],
     ['text-subtle on bg (large/meta text only)', t['--color-text-subtle'], bg, 3],
-    ['border-strong vs bg (input outlines)', t['--color-border-strong'], bg, light ? 1.3 : 1.3],
+    ['border-input vs bg (form control outlines)', t['--color-border-input'], bg, 3],
+    ['border-input vs bg-subtle', t['--color-border-input'], t['--color-bg-subtle'], 3],
   ];
   const report = checks.map(([label, fg, back, min]) => ({ label, fg, bg: back, ratio: contrast(fg, back), min }));
   return { tokens: t, report, accentStep, textStep };
@@ -304,9 +319,9 @@ function buildPalette(brandHex, opts) {
   if (lch.C < 0.03) notes.push('the brand color is nearly neutral — the ramps will be greys; consider a second accent for CTAs or a monochrome design.');
   const brand = buildRamp(lch, hex);
   const neutrals = buildNeutrals(lch, opts.tint);
-  const modes = opts.mode === 'both' ? ['light', 'dark'] : [opts.mode];
+  // Both schemes are always built: single-mode sites still use data-theme bands.
   const schemes = {};
-  for (const m of modes) schemes[m] = semantic(m, hex, brand, neutrals, opts, notes);
+  for (const m of ['light', 'dark']) schemes[m] = semantic(m, hex, brand, neutrals, opts, notes);
   return { hex, lch, brand, neutrals, schemes, notes };
 }
 
@@ -329,9 +344,13 @@ function toCss(p, opts) {
   lines.push(cssBlock(':root', ramps));
   const { light, dark } = p.schemes;
   if (opts.mode === 'light') {
-    lines.push(cssBlock(':root', { 'color-scheme': 'light', ...light.tokens }));
+    lines.push('/* Light by default. data-theme="dark" on any element (a band, a card) switches it to the dark tokens. */');
+    lines.push(cssBlock(':root,\n[data-theme="light"]', { 'color-scheme': 'light', ...light.tokens }));
+    lines.push(cssBlock('[data-theme="dark"]', { 'color-scheme': 'dark', ...dark.tokens }));
   } else if (opts.mode === 'dark') {
-    lines.push(cssBlock(':root', { 'color-scheme': 'dark', ...dark.tokens }));
+    lines.push('/* Dark by default. data-theme="light" on any element switches it to the light tokens. */');
+    lines.push(cssBlock(':root,\n[data-theme="dark"]', { 'color-scheme': 'dark', ...dark.tokens }));
+    lines.push(cssBlock('[data-theme="light"]', { 'color-scheme': 'light', ...light.tokens }));
   } else {
     lines.push('/* Light is the default; dark follows the OS unless the user picked a theme (data-theme on <html>). */');
     lines.push(cssBlock(':root,\n[data-theme="light"]', { 'color-scheme': 'light', ...light.tokens }));
@@ -374,7 +393,7 @@ function previewHtml(palettes) {
           <strong>Headline that sells the outcome</strong>
           <p style="color:${t['--color-text-muted']}">Supporting copy in the muted text color with a <a style="color:${t['--color-accent-text']}">brand link</a>.</p>
           <div class="row"><button style="background:${t['--color-accent']};color:${t['--color-on-accent']}">Primary action</button>
-          <button style="background:transparent;color:${t['--color-text']};border:1px solid ${t['--color-border-strong']}">Secondary</button>
+          <button style="background:transparent;color:${t['--color-text']};border:1px solid ${t['--color-border-input']}">Secondary</button>
           <span class="badge" style="background:${t['--color-accent-subtle']};color:${t['--color-accent-text']}">Badge</span></div></div>`
           : '';
       return `<section class="card"><h2>${esc(p.hex)} <code>${esc(fmtLch(p.lch))}</code></h2>
@@ -398,6 +417,11 @@ h2{font-size:16px;margin:0 0 12px}code{font-size:12px;color:#666;margin-left:8px
 }
 
 // ---------------------------------------------------------------- cli
+function writeFile(file, content) {
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, content);
+}
+
 function parseArgs(argv) {
   const opts = { mode: 'both', tint: 0.5, format: 'css', preferDarkText: false };
   for (let i = 0; i < argv.length; i++) {
@@ -449,7 +473,7 @@ function main() {
       for (const n of new Set(p.notes)) console.log(`    note: ${n}`);
     }
     if (opts.preview) {
-      writeFileSync(opts.preview, previewHtml(palettes));
+      writeFile(opts.preview, previewHtml(palettes));
       console.log(`\nPreview written to ${opts.preview}`);
     }
     return;
@@ -463,6 +487,7 @@ function main() {
             brand: p.hex,
             oklch: fmtLch(p.lch),
             anchorStep: p.brand.anchorStep,
+            defaultMode: opts.mode,
             ramps: { brand: p.brand.ramp, neutral: p.neutrals },
             schemes: Object.fromEntries(Object.entries(p.schemes).map(([m, s]) => [m, s.tokens])),
             notes: [...new Set(p.notes)],
@@ -471,9 +496,9 @@ function main() {
           2,
         ) + '\n'
       : toCss(p, opts);
-  if (opts.preview) writeFileSync(opts.preview, previewHtml([p]));
+  if (opts.preview) writeFile(opts.preview, previewHtml([p]));
   if (opts.out) {
-    writeFileSync(opts.out, output);
+    writeFile(opts.out, output);
     console.log(`Tokens written to ${opts.out}\n`);
     console.log(reportText(p));
   } else {

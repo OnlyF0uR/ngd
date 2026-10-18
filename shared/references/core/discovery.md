@@ -14,7 +14,8 @@ The interview decides most of the outcome. Its job: learn enough to produce five
 ## 1. Ground rules
 
 - **Read before you ask.** Pull everything you can from the request, attachments, an existing repo, an existing website (fetch it), the user's brand assets and any `DESIGN.md` from an earlier session. Ask only for what is still missing, and play back what you inferred ("I'm assuming the site is Dutch-only — correct me if not") so the user can correct it in one line.
-- **Rounds, not a drip.** At most three rounds, each with no more than six questions. Fewer rounds when the request is detailed. One question per message wastes the user's time; twenty questions in one message overwhelms them.
+- **Rounds, not a drip.** Three rounds, each with about six questions or fewer; a short fourth round is fine for skill-specific details (a shop's payments and shipping, a panel's roles). Fewer rounds when the request is detailed. One question per message wastes the user's time; twenty questions in one message overwhelms them.
+- **Ask what only the user can answer; default the rest.** Always ask: the business and goal (round 1), the theme color, images and where they come from, entrance and scroll animations, and the skill's must-know facts (marked in each SKILL.md). Everything with a sensible default (analytics, legal pages, form of address, density, deployment details) goes into the playback as an assumption the user can correct in one line, instead of being asked.
 - **Every question has a recommended default**, so "go with your suggestions" is a complete answer. When the user says "you decide", decide, and log it under *Assumptions to confirm* in DESIGN.md.
 - **Use a structured question tool when you have one** (for example AskUserQuestion: up to 4 questions per call, 2–4 options each, put your recommendation first and label it "(Recommended)"; the user can always type their own answer). Use plain text for open questions (what the business does, what makes it different) — offering options there puts words in the user's mouth.
 - **Be honest about capabilities.** Offer AI image generation only if an image-generation tool is actually connected, and name it. Promise search-volume numbers only if you have an SEO data source; otherwise say volumes will be estimates.
@@ -36,13 +37,14 @@ Ask as open questions in a single message (skip any already answered):
 ### Theme color — how to ask
 The user either gives a theme color or picks one of three you propose.
 
-1. **If they have a brand color** (stated, in the logo SVG, in brand guidelines): confirm it — "I'll use #0F766E from your logo as the theme color" — and still offer the alternative of choosing.
+1. **If the user gave a brand color**, use it. Don't propose alternatives: it's their answer. Only flag a problem the palette script reports (for example, a very light color used as a background field with dark buttons).
+   **If you found a color yourself** (logo SVG, brand guidelines, the current site), confirm it ("I'll use #0F766E from your logo as the theme color") and offer the three-option route as an alternative.
 2. **Otherwise propose three candidates**, each with a name, hex, one-line rationale and the feeling it creates:
    - **A — Category-native, refined.** The color the category is trusted for, tuned to look premium rather than default (wellness → a deep sage, not stock green).
    - **B — Differentiating.** A color none of the main competitors use, so the brand is recognisable in a row of search results.
    - **C — Bold.** Memorable and high-energy, or unusually premium (a deep ink, an electric hue). More risk, more recall.
    Base the candidates on round 1: industry, audience, personality hints, competitors' colors. Avoid generic "SaaS indigo" unless it is clearly right.
-3. **Validate before showing.** Run `node scripts/palette.mjs --candidates "#a,#b,#c" --preview design/theme-options.html`. If a candidate cannot produce accessible buttons and text in both light and dark mode, adjust it or swap it. Read the notes: a light brand color (yellow, lime, sky) becomes a background field with dark buttons; a mid-tone color may get a slightly deeper shade for buttons. Tell the user in plain words when that applies.
+3. **Validate before showing.** From the project folder, run `node <skill-dir>/scripts/palette.mjs --candidates "#a,#b,#c" --preview design/theme-options.html`. If a candidate cannot produce accessible buttons and text in both light and dark mode, adjust it or swap it. Read the notes: a light brand color (yellow, lime, sky) becomes a background field with dark buttons; a mid-tone color may get a slightly deeper shade for buttons. Tell the user in plain words when that applies.
 4. **Show them visually when you can** (open or publish the preview HTML; otherwise list name + hex + rationale). Ask: "Pick A, B or C — or give me your own color (a hex code, or a description like 'deep forest green')." Convert descriptions to a hex and confirm.
 
 ### The other look-and-feel questions
@@ -72,7 +74,7 @@ Mention that motion never delays content and always respects the "reduce motion"
 - **Leads:** where submissions should go (email address, CRM or webhook, Slack, a database you can export), which contact channels to show (form, phone, WhatsApp, booking link, email), and what they need to know about a lead to qualify it — this becomes the steps of the conversational form.
 - **Proof:** which testimonials, ratings, logos, case studies or numbers may be published.
 
-### Practicalities (offer defaults; most users accept them)
+### Practicalities (state defaults in the playback instead of asking; most users accept them)
 - **Domain / production URL** (needed for canonical URLs, sitemap and social cards).
 - **Analytics:** default Cloudflare Web Analytics (free, no cookies or local storage, no fingerprinting) or their existing tool. In the EU, cookie-setting tools need consent; whether cookieless analytics may run without consent depends on the national regulator, so flag it for their privacy review rather than promising "no banner needed".
 - **Legal pages:** privacy policy, terms, imprint/company details where required, cookie policy if needed. You can draft templates; they should have them checked.

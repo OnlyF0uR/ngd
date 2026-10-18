@@ -3,7 +3,7 @@ import type { Route } from './+types/contact';
 import { seo, breadcrumbJsonLd } from '~/lib/seo';
 import { site, telHref, whatsappHref } from '~/lib/site';
 import { cloudflareContext } from '~/lib/cloudflare-context';
-import { parseLead, saveLead, notifyOwner, withinRateLimit, leadBindings } from '~/lib/leads.server';
+import { parseLead, deliverLead, hasLeadDestination, leadBindings, withinRateLimit } from '~/lib/leads.server';
 import { verifyTurnstile } from '~/lib/turnstile.server';
 import { LeadForm } from '~/components/forms/LeadForm';
 import type { LeadActionData } from '~/components/forms/StepForm/StepForm';
@@ -21,48 +21,55 @@ export const meta: Route.MetaFunction = () =>
     ]),
   });
 
-export function loader({ context }: Route.LoaderArgs) {
-  const { env } = context.get(cloudflareContext);
-  return { turnstileSiteKey: env.TURNSTILE_SITE_KEY };
-}
+const fail = (status: number, errors: Record<string, string>) => data<LeadActionData>({ ok: false, errors }, { status });
+const fallback = `Please email us at ${site.contact.email} or call ${site.contact.phone}.`;
 
 export async function action({ request, context }: Route.ActionArgs) {
   const { env, ctx } = context.get(cloudflareContext);
   const form = await request.formData();
 
   // Honeypot filled: pretend success so bots learn nothing.
-  if (form.get('company_website')) return { ok: true } satisfies LeadActionData;
+  if (form.get('ngd_hp')) return { ok: true } satisfies LeadActionData;
 
   const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
   if (!(await withinRateLimit(env, `lead:${ip}`))) {
-    return data<LeadActionData>({ ok: false, errors: { form: 'Too many attempts. Please wait a minute and try again.' } }, { status: 429 });
+    return fail(429, { form: 'Too many attempts. Please wait a minute and try again.' });
   }
 
   const parsed = parseLead(form);
-  if (parsed.errors) return data<LeadActionData>({ ok: false, errors: parsed.errors }, { status: 400 });
+  if (parsed.errors) return fail(400, parsed.errors);
 
-  const human = await verifyTurnstile(form.get('cf-turnstile-response'), leadBindings(env).TURNSTILE_SECRET_KEY, ip);
-  if (!human) {
-    return data<LeadActionData>(
-      { ok: false, errors: { form: `We couldn’t verify the request. Please try again, or email us at ${site.contact.email}.` } },
-      { status: 400 },
-    );
+  // Turnstile is on when the site has a site key; then a missing secret is a configuration error (fail closed).
+  if (site.turnstileSiteKey) {
+    const secret = leadBindings(env).TURNSTILE_SECRET_KEY;
+    if (!secret) {
+      console.error('TURNSTILE_SECRET_KEY is not set while site.turnstileSiteKey is: refusing leads (fail closed).');
+      return fail(503, { form: `We can’t take messages through this form right now. ${fallback}` });
+    }
+    const human = await verifyTurnstile({ token: form.get('cf-turnstile-response'), secret, ip });
+    if (!human) return fail(400, { form: `We couldn’t verify the request. Please try again. ${fallback}` });
+  }
+
+  // Never show "thanks" for a lead that went nowhere.
+  if (!hasLeadDestination(env)) {
+    if (import.meta.env.DEV) {
+      console.warn('[dev] Lead accepted but not stored: configure DB (D1), EMAIL or LEAD_WEBHOOK_URL.', parsed.lead);
+      return { ok: true } satisfies LeadActionData;
+    }
+    console.error('No lead destination configured (DB, EMAIL or LEAD_WEBHOOK_URL): refusing leads.');
+    return fail(503, { form: `We can’t take messages through this form right now. ${fallback}` });
   }
 
   try {
-    await saveLead(env, parsed.lead);
+    await deliverLead(env, ctx, parsed.lead);
   } catch (error) {
-    console.error('Saving lead failed', error);
-    return data<LeadActionData>(
-      { ok: false, errors: { form: `Something went wrong on our side. Your answers are still here; try again or email ${site.contact.email}.` } },
-      { status: 500 },
-    );
+    console.error('Lead delivery failed', error);
+    return fail(500, { form: `Something went wrong on our side. Your answers are still here: try again, or email us at ${site.contact.email} or call ${site.contact.phone}.` });
   }
-  ctx.waitUntil(notifyOwner(env, parsed.lead));
   return { ok: true } satisfies LeadActionData;
 }
 
-export default function Contact({ loaderData }: Route.ComponentProps) {
+export default function Contact() {
   const { contact } = site;
   return (
     <section className={styles.page}>
@@ -85,7 +92,7 @@ export default function Contact({ loaderData }: Route.ComponentProps) {
           )}
         </ul>
       </div>
-      <LeadForm turnstileSiteKey={loaderData.turnstileSiteKey} />
+      <LeadForm />
     </section>
   );
 }

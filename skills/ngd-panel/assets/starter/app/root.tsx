@@ -61,10 +61,8 @@ export default function App() {
 /** Designed 404 and error pages. Unmatched URLs get a real 404 status from here. */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   const notFound = isRouteErrorResponse(error) && error.status === 404;
-  const title = notFound ? 'We couldn’t find that page' : 'Something went wrong';
-  const detail = notFound
-    ? 'The link may be broken or the page may have moved. These might help:'
-    : 'Please try again in a moment. If it keeps happening, contact us and we’ll sort it out.';
+  const title = notFound ? site.ui.notFoundTitle : site.ui.errorTitle;
+  const detail = notFound ? site.ui.notFoundText : site.ui.errorText;
   const stack = import.meta.env.DEV && error instanceof Error ? error.stack : undefined;
 
   return (
@@ -74,8 +72,8 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       <p className={styles.code}>{notFound ? '404' : 'Error'}</p>
       <h1 className={styles.title}>{title}</h1>
       <p className={styles.detail}>{detail}</p>
-      <nav className={styles.links} aria-label="Helpful links">
-        <Link to="/">Home</Link>
+      <nav className={styles.links} aria-label={site.ui.helpfulLinks}>
+        <Link to="/">{site.ui.home}</Link>
         {site.nav.map((item) => (
           <Link key={item.href} to={item.href}>
             {item.label}

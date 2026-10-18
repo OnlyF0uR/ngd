@@ -18,14 +18,14 @@ Nothing ships on "it builds". Verification proves the site is fast, findable, ac
 ```sh
 npm run typecheck                                  # wrangler types + react-router typegen + tsc
 npm run build                                      # includes prerendering
-node <skill>/scripts/ngd-audit.mjs .               # NGD rules: versions, CSS budget, SEO tags, forms vs prerender …
+node <skill-dir>/scripts/ngd-audit.mjs .               # NGD rules: versions, CSS budget, SEO tags, forms vs prerender …
 npx wrangler deploy --dry-run --outdir .wrangler/dry-run   # bundles the Worker exactly as deploy would
 npm run preview                                    # serves the build in the Workers runtime (workerd)
-node <skill>/scripts/screenshot.mjs http://localhost:4173/ /contact /pricing --widths 390,768,1440
-node <skill>/scripts/screenshot.mjs http://localhost:4173/ /contact --widths 390,1440 --theme dark   # if dark mode exists
+node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact /pricing --widths 390,768,1440
+node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact --widths 390,1440 --theme dark   # if dark mode exists
 ```
 
-`<skill>` is this skill's directory. The screenshot script fails on runtime errors, HTTP errors and horizontal overflow; treat each as a bug. If Playwright is missing, install it in the project as a dev dependency or skip visual checks and say so.
+`<skill-dir>` is this skill's directory; run the commands from the project folder. The screenshot script uses reduced motion by default (so scroll reveals can't hide sections) and fails on runtime errors, HTTP errors and horizontal overflow; treat each as a bug. If Playwright is missing, install it in the project as a dev dependency or skip visual checks and say so.
 
 **Lighthouse** (mobile, for the homepage and one page of each template):
 
@@ -33,7 +33,7 @@ node <skill>/scripts/screenshot.mjs http://localhost:4173/ /contact --widths 390
 CHROME_PATH=<path-to-chrome> npx lighthouse http://localhost:4173/ --only-categories=performance,accessibility,best-practices,seo --output=html --output-path=design/lighthouse-home.html
 ```
 
-Two local caveats: `vite preview` serves uncompressed files (performance looks worse than production), and the robots route blocks non-production hosts (SEO reports "blocked from indexing"). For real numbers, run Lighthouse against a preview deployment (`npx wrangler versions upload` gives a URL) or serve `build/client` through a compressing static server for prerendered pages.
+Two caveats: `vite preview` serves uncompressed files (performance looks worse than production), and every non-production host (localhost, preview deployments) is deliberately blocked from indexing, so Lighthouse's "page is blocked from indexing" audit fails there by design. For realistic performance, run Lighthouse against a preview deployment (`npx wrangler versions upload` gives a URL) or serve `build/client` through a compressing static server; judge SEO on the other audits, and re-run the full check on the production URL after launch.
 
 ## 2. Visual review against the chosen preset
 
@@ -78,10 +78,10 @@ If something deviates on purpose (performance, accessibility, content length), n
 ## 6. Content and conversion
 
 - No lorem ipsum, "TBD", placeholder phone numbers or example.com addresses (unless the user knows and agreed).
-- Copy matches the brief: audience, tone, form of address, language(s); spelling checked.
+- Copy matches the brief: audience, tone, form of address, language(s); spelling checked. Interface text is translated too (`site.ui` in `app/lib/site.ts`: form steps, buttons, navigation labels, 404 page).
 - The primary CTA is visible in the first viewport on mobile and desktop and repeated at the end of long pages.
 - Every claim, review and number is real and attributable.
-- Lead form tested end to end: validation, submission, success message, delivery to the agreed destination (or clearly documented as pending configuration).
+- Lead form tested end to end, from a prerendered page *and* from the contact page: validation, keyboard-only use, submission, success message, and the lead arriving at the agreed destination. Without a configured destination the starter refuses submissions in production, which is correct; document what the user must configure.
 - Legal pages exist where needed (privacy, terms, imprint/company details, cookie information) and are linked in the footer.
 - Contact details consistent everywhere (site config).
 
@@ -102,7 +102,7 @@ If something deviates on purpose (performance, accessibility, content length), n
 - [ ] Lighthouse (production-like): Performance ≥ 95, Accessibility 100, Best Practices 100, SEO 100 on key pages, or a written reason for each gap.
 - [ ] The build matches the chosen preset; deviations are listed.
 - [ ] SEO plan implemented; sitemap, robots, canonicals, structured data verified.
-- [ ] Forms and other conversions tested end to end.
+- [ ] Forms and other conversions tested end to end (including from a prerendered page and with the keyboard only).
 - [ ] DESIGN.md updated with status "verify" or "shipped" and next steps.
 - [ ] Skill-specific items in SKILL.md checked.
 

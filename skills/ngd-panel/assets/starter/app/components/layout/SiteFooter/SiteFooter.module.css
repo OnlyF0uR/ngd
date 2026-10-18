@@ -35,8 +35,9 @@
 }
 
 .column {
-  font-style: normal;
-
+  & address {
+    font-style: normal;
+  }
   & ul {
     display: grid;
     gap: var(--space-2);

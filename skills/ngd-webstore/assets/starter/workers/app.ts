@@ -1,6 +1,9 @@
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 import { cloudflareContext } from '../app/lib/cloudflare-context';
 import { redirects } from '../app/content/redirects';
+import { site } from '../app/lib/site';
+
+const PRODUCTION_HOST = new URL(site.url).host;
 
 const handler = createRequestHandler(() => import('virtual:react-router/server-build'), import.meta.env.MODE);
 
@@ -33,6 +36,8 @@ export default {
 
     const headers = new Headers(response.headers);
     for (const [name, value] of Object.entries(SECURITY_HEADERS)) if (!headers.has(name)) headers.set(name, value);
+    // Preview deployments and workers.dev must never be indexed (prerendered files there rely on robots.txt)
+    if (url.host !== PRODUCTION_HOST) headers.set('X-Robots-Tag', 'noindex, nofollow');
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
   },
 } satisfies ExportedHandler<Env>;

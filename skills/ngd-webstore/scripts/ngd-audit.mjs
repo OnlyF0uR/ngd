@@ -160,12 +160,39 @@ if (!exists('public/_headers') || !/immutable/.test(read('public/_headers'))) wa
 else pass('Long-term caching for /assets/*');
 if (exists('.gitignore') && !/\.dev\.vars/.test(read('.gitignore'))) fail('.dev.vars is git-ignored', 'secrets could be committed');
 
+// ------------------------------------------------------------------ site config and lead delivery
+if (exists('app/lib/site.ts')) {
+  const siteTs = read('app/lib/site.ts');
+  if (/https?:\/\/(www\.)?example\.com/.test(siteTs)) fail('Production URL set in app/lib/site.ts', 'site.url is still example.com (canonicals, sitemap and OG URLs use it)');
+  if (/1x00000000000000000000AA/.test(siteTs)) warn('Real Turnstile site key', 'app/lib/site.ts still has the always-passing test key: replace it before launch');
+  for (const m of siteTs.matchAll(/(?:defaultOgImage|logo):\s*['"](\/[^'"]+)['"]/g)) {
+    if (!exists(join('public', m[1]))) warn('Assets referenced in site config exist', `public${m[1]} is missing`);
+  }
+}
+if (exists('app/lib/leads.server.ts') && wranglerFile) {
+  const w = read(wranglerFile).replace(/^\s*\/\/.*$/gm, '');
+  if (!/d1_databases|send_email/.test(w)) {
+    warn('Lead destination configured', 'no D1 or send_email binding in wrangler config: unless LEAD_WEBHOOK_URL is set as a secret, production refuses lead submissions');
+  }
+}
+
 // ------------------------------------------------------------------ built HTML (prerendered pages)
 const htmlFiles = walk('build/client', (f) => f.endsWith('.html') && !basename(f).startsWith('__'));
 if (!htmlFiles.length) warn('Prerendered HTML checks', 'no build/client/*.html (run `npm run build` first, or nothing is prerendered)');
 const prerenderedPaths = new Set(
   htmlFiles.map((f) => '/' + relative('build/client', f).replace(/\\/g, '/').replace(/(^|\/)index\.html$/, '').replace(/\.html$/, '')),
 );
+// Paths the app can serve: prerendered pages, static route literals in routes.ts, prefixes of dynamic routes, public files
+const routeLiterals = [...routesTs.matchAll(/(?:route|prefix)\(\s*['"]([^'"]*)['"]/g)].map((m) => '/' + m[1].replace(/^\//, ''));
+const staticRoutes = new Set(['/', ...routeLiterals.filter((r) => !/[:*]/.test(r))]);
+const dynamicPrefixes = routeLiterals.filter((r) => /[:*]/.test(r)).map((r) => r.slice(0, r.search(/[:*]/)));
+function knownPath(href) {
+  if (prerenderedPaths.has(href) || staticRoutes.has(href)) return true;
+  if (dynamicPrefixes.some((p) => p.length > 1 && href.startsWith(p))) return true;
+  if (/\.[a-z0-9]{2,5}$/i.test(href)) return exists(join('public', href)) || exists(join('build/client', href));
+  return [...staticRoutes].some((r) => r !== '/' && href.startsWith(r + '/'));
+}
+
 for (const f of htmlFiles) {
   const html = read(f);
   const page = '/' + relative('build/client', f).replace(/\\/g, '/').replace(/(^|\/)index\.html$/, '');
@@ -176,7 +203,7 @@ for (const f of htmlFiles) {
   if (!/<meta name="description" content="[^"]{50,}"/.test(html)) problems.push('missing/short meta description');
   const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
   if (!canonical) problems.push('missing canonical');
-  else if (/localhost|127\.0\.0\.1/.test(canonical)) problems.push(`canonical points to ${canonical}`);
+  else if (/localhost|127\.0\.0\.1|example\.com/.test(canonical)) problems.push(`canonical points to ${canonical}`);
   const h1s = (html.match(/<h1[\s>]/g) ?? []).length;
   if (h1s !== 1 && !/name="robots" content="noindex/.test(html)) problems.push(`${h1s} <h1> elements`);
   if (!/property="og:image"/.test(html)) soft.push('no og:image');
@@ -188,9 +215,13 @@ for (const f of htmlFiles) {
     const target = action.split('?')[0].replace(/\/$/, '') || '/';
     if (prerenderedPaths.has(target)) problems.push(`form posts to prerendered ${target} (static paths answer POST with 405)`);
   }
+  const unknownLinks = [...html.matchAll(/<a[^>]+href="(\/[^"#?]*)/g)]
+    .map((m) => m[1].replace(/\/$/, '') || '/')
+    .filter((href) => !href.startsWith('//') && !knownPath(href));
+  if (unknownLinks.length) soft.push(`links to unknown pages: ${[...new Set(unknownLinks)].slice(0, 8).join(', ')}`);
   if (problems.length) fail(`Prerendered ${page}`, problems.join('; '));
-  else pass(`Prerendered ${page}`, soft.join('; '));
-  if (soft.length && !problems.length) warn(`Prerendered ${page}`, soft.join('; '));
+  else if (!soft.length) pass(`Prerendered ${page}`);
+  if (soft.length) warn(`Prerendered ${page}`, soft.join('; '));
 }
 
 // ------------------------------------------------------------------ output
