@@ -4,12 +4,12 @@
     {
       "id": 1,
       "prompt": "Brightline Solar installs solar panels for homeowners. We need a customer portal where customers follow their installation and see their documents and energy production, and an admin side for our office team to manage installations and planning.",
-      "expected_output": "An interview about users, roles, sign-in, data sources, top tasks and metrics; a panel plan instead of keyword research; five app-shell presets that each show the shell, a dashboard and a list view with a skeleton state and an empty state, handling both the customer and staff audiences.",
+      "expected_output": "An interview about users, roles, sign-in, data sources, top tasks and metrics; a panel plan instead of keyword research; five app-shell presets that each show the shell, a dashboard and a list view with a skeleton state and an empty state, handling both audiences: the customer side phone-first, the staff side desktop-first.",
       "files": [],
       "expectations": [
         "No keyword research is done; design/panel-plan.md lists users and roles, objects, top tasks, screens and dashboard contents",
-        "The sign-in recommendation distinguishes customers (magic link or similar) from staff (Microsoft 365 SSO)",
-        "Each preset shows an app shell, a dashboard and a list view, plus one skeleton loading state and one empty state",
+        "The sign-in recommendation distinguishes customers (passwordless email link or code, or similar) from staff (the office's existing identity provider or SSO, or Cloudflare Access)",
+        "Each preset shows the customer home at phone size and the staff dashboard and list view, each screen after an ngd-part divider, plus one skeleton loading state and one empty state",
         "Realistic domain data is used (installations, crews, invoices), not placeholder items",
         "The plan specifies noindex and private, no-store for the panel and server-side permission checks"
       ]

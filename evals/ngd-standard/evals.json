@@ -13,7 +13,8 @@
         "Entrance animations and scroll animations are asked as two separate questions",
         "DESIGN.md exists and records theme color, mode, personality, imagery and motion decisions",
         "design/seo-plan.md maps one primary keyword cluster to each page, including local (Utrecht) phrases",
-        "design/presets/round-1.html contains exactly five .preset sections built on the presets shell, using the generated tokens and real draft copy (no lorem ipsum)",
+        "design/presets/round-1.html contains exactly five .ngd-preset sections assembled with scripts/build-presets.mjs, using the generated tokens and real draft copy (no lorem ipsum)",
+        "scripts/screenshot.mjs --presets was run and its problems (if any) were fixed before presenting",
         "Each preset includes the first steps of the conversational lead form",
         "The presentation message lists the five presets, recommends one, and asks the user to pick, mix, tweak or request five more",
         "No React Router project is scaffolded before the user picks a preset"

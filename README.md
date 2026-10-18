@@ -64,5 +64,6 @@ The skills then appear as `/ngd:ngd-standard`, `/ngd:ngd-webstore` and `/ngd:ngd
 - Edit shared material only in [`shared/`](shared/): `references/core/`, `scripts/`, `assets/` and `snippets/workflow.md` (the workflow section injected into every SKILL.md between the `ngd:workflow` markers).
 - Then run `node scripts/sync-shared.mjs` to copy it into each skill. `node scripts/sync-shared.mjs --check` verifies that everything is in sync and that the frontmatter is portable (name equals the folder, description ≤ 1024 characters, no angle brackets, SKILL.md under 500 lines). Run it before every commit.
 - `claude plugin validate .` checks the plugin and marketplace manifests.
+- [`evals/`](evals/) holds test prompts per skill with expectations to grade; run them after larger changes (its README explains how).
 - The technical facts (React Router 8.4, `@cloudflare/vite-plugin` 1.x, Wrangler 4, browser support, Google Search guidance) were verified in October 2026. The skills tell agents to check the latest versions at build time; refresh `references/core/architecture.md` and the starter when a new major version lands.
 - A new ngd skill: create `skills/ngd-<name>/SKILL.md` with frontmatter, an intro, the empty workflow markers and type-specific sections, then run the sync.
