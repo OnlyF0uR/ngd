@@ -1,0 +1,221 @@
+/*
+ * global.css: the ONLY global stylesheet besides the generated tokens.css.
+ * Budget: about 8 KB / 250 lines. Allowed here: layer order, non-color tokens, reset, base element
+ * styles, focus, selection, reduced motion, view transitions. Everything else goes in CSS Modules.
+ * Reset and base sit in cascade layers; CSS Modules are unlayered, so components always win.
+ */
+@layer reset, base;
+
+:root {
+  /* Type: tune families and scale to the chosen preset */
+  --font-display: 'Inter Tight Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-text: 'Inter Tight Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.125rem;
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --display-sm: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+  --display-md: clamp(2.25rem, 1.6rem + 3vw, 4rem);
+  --display-lg: clamp(2.75rem, 1.6rem + 5vw, 6rem);
+
+  --leading-tight: 1.05;
+  --leading-snug: 1.2;
+  --leading-body: 1.6;
+  --tracking-display: -0.035em;
+  --tracking-heading: -0.02em;
+  --tracking-body: -0.006em;
+  --tracking-label: 0.06em;
+
+  /* Space (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+  --section-y: clamp(4rem, 10vw, 9rem);
+  --gutter: clamp(1.25rem, 5vw, 4rem);
+
+  /* Layout */
+  --container: 75rem;
+  --container-wide: 85rem;
+  --container-prose: 45rem;
+  --header-h: 4.5rem;
+
+  /* Shape (soft defaults; switch to the preset's shape language) */
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-pill: 999px;
+
+  /* Depth */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --shadow-lg: 0 24px 64px -16px rgb(0 0 0 / 0.28);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-reveal: 600ms;
+
+  /* Stacking */
+  --z-header: 50;
+  --z-overlay: 80;
+  --z-toast: 90;
+}
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  * {
+    margin: 0;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+  img,
+  video {
+    height: auto;
+  }
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+  button {
+    cursor: pointer;
+  }
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: break-word;
+  }
+  ul[role='list'],
+  ol[role='list'] {
+    list-style: none;
+    padding: 0;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+    scroll-padding-top: calc(var(--header-h) + var(--space-4));
+    background: var(--color-bg);
+  }
+  body {
+    min-height: 100dvh;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-text);
+    font-size: var(--text-md);
+    line-height: var(--leading-body);
+    letter-spacing: var(--tracking-body);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-heading);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  h1 {
+    font-size: var(--display-lg);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-display);
+  }
+  h2 {
+    font-size: var(--display-md);
+    line-height: var(--leading-tight);
+  }
+  h3 {
+    font-size: var(--text-xl);
+  }
+  p {
+    text-wrap: pretty;
+  }
+  a {
+    color: var(--color-accent-text);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-accent-subtle);
+    color: var(--color-text);
+  }
+  [data-theme] {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+  .visually-hidden:not(:focus-within, :active) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

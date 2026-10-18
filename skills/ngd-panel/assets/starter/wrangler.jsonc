@@ -1,0 +1,31 @@
+/**
+ * Wrangler configuration: https://developers.cloudflare.com/workers/wrangler/configuration/
+ * After changing bindings run `npm run cf-typegen` so the Env type matches.
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "my-site",
+	"compatibility_date": "2026-10-06", // keep the date the scaffolder generated
+	"main": "./workers/app.ts",
+	"assets": {
+		// Prerendered pages are written as /about/index.html; serve them at /about without a redirect.
+		"html_handling": "drop-trailing-slash"
+	},
+	"vars": {
+		// Public values only. Secrets: `npx wrangler secret put NAME` (and .dev.vars locally).
+		"TURNSTILE_SITE_KEY": "1x00000000000000000000AA"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true
+	// Add only the bindings the project uses, for example:
+	// "routes": [{ "pattern": "www.example.com", "custom_domain": true }],
+	// "d1_databases": [{ "binding": "DB", "database_name": "site", "database_id": "<id>", "migrations_dir": "migrations" }],
+	// "send_email": [{ "name": "EMAIL" }],
+	// "ratelimits": [{ "name": "LEAD_LIMITER", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } }],
+	// "kv_namespaces": [{ "binding": "CONTENT", "id": "<id>" }],
+	// "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "<name>" }],
+	// "images": { "binding": "IMAGES" },
+	// "cache": { "enabled": true }  // Workers Cache: read architecture.md section 12 first
+}

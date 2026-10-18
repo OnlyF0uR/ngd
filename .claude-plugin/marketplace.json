@@ -1,0 +1,12 @@
+{
+  "name": "ngd",
+  "description": "Next-generation design (NGD) skills for Claude Code",
+  "owner": { "name": "OnlyF0uR" },
+  "plugins": [
+    {
+      "name": "ngd",
+      "source": ".",
+      "description": "ngd-standard, ngd-webstore and ngd-panel: design-led website, store and panel builds with React Router on Cloudflare Workers"
+    }
+  ]
+}

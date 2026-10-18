@@ -1,0 +1,59 @@
+/*
+ * Shared text styles. Don't use these classes directly in markup; compose them in a module:
+ *   .title { composes: display from '~/styles/typography.module.css'; }
+ * Keeps typography consistent without growing global.css.
+ */
+.display {
+  font-family: var(--font-display);
+  font-size: var(--display-lg);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: var(--display-md);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-heading);
+  text-wrap: balance;
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+}
+
+.lead {
+  font-size: var(--text-xl);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  max-width: 38ch;
+  text-wrap: pretty;
+}
+
+.prose {
+  max-width: 65ch;
+  color: var(--color-text);
+
+  & > * + * {
+    margin-top: var(--space-4);
+  }
+  & h2,
+  & h3 {
+    margin-top: var(--space-7);
+  }
+  & ul,
+  & ol {
+    padding-left: 1.25em;
+  }
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}

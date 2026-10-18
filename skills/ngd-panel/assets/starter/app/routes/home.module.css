@@ -1,0 +1,83 @@
+.hero {
+  display: grid;
+  gap: var(--space-5);
+  max-width: var(--container);
+  margin-inline: auto;
+  padding: var(--space-9) var(--gutter) var(--section-y);
+}
+
+.eyebrow {
+  composes: eyebrow from '~/styles/typography.module.css';
+}
+
+.title {
+  composes: display from '~/styles/typography.module.css';
+  max-width: 14ch;
+}
+
+.lead {
+  composes: lead from '~/styles/typography.module.css';
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.proof {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.section {
+  display: grid;
+  gap: var(--space-7);
+  max-width: var(--container);
+  margin-inline: auto;
+  padding: var(--section-y) var(--gutter);
+}
+
+.heading {
+  composes: heading from '~/styles/typography.module.css';
+  max-width: 20ch;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.card {
+  height: 100%;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+
+  & h3 {
+    margin-bottom: var(--space-2);
+  }
+  & p {
+    color: var(--color-text-muted);
+  }
+}
+
+.cta {
+  padding: var(--section-y) var(--gutter);
+}
+
+.ctaInner {
+  display: grid;
+  gap: var(--space-7);
+  max-width: var(--container);
+  margin-inline: auto;
+}
+
+@media (min-width: 960px) {
+  .ctaInner {
+    grid-template-columns: 5fr 7fr;
+    align-items: start;
+  }
+}

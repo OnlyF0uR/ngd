@@ -1,0 +1,7 @@
+{
+  "name": "ngd",
+  "description": "Next-generation design skills: ngd-standard (landing pages and content sites), ngd-webstore (online stores) and ngd-panel (admin and user panels). Interview, keyword research, five skeleton presets, then a fast, SEO-ready React Router build on Cloudflare Workers.",
+  "author": { "name": "OnlyF0uR" },
+  "repository": "https://github.com/OnlyF0uR/ngd",
+  "keywords": ["design", "website", "landing-page", "e-commerce", "dashboard", "react-router", "cloudflare-workers", "seo"]
+}

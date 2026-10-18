@@ -1,0 +1,13 @@
+{
+  "name": "ngd-skills",
+  "private": true,
+  "type": "module",
+  "description": "Source of the NGD agent skills (not an app). See README.md.",
+  "scripts": {
+    "sync": "node scripts/sync-shared.mjs",
+    "check": "node scripts/sync-shared.mjs --check"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
