@@ -1,0 +1,47 @@
+{
+  "skill_name": "ngd-standard",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I run Kinetic Physio, a physiotherapy practice in Utrecht (Netherlands). We need a website that gets us new patients. We have no site yet.",
+      "expected_output": "A short first interview round (business, goal, proof, existing assets, competitors) with defaults; after answers, three contrast-checked theme color options, the image and animation questions, DESIGN.md, a keyword plan for physiotherapy in Utrecht, and five clearly different homepage presets in design/presets/round-1.html with a presentation message asking the user to pick, mix, tweak or request more. No production code yet.",
+      "files": [],
+      "expectations": [
+        "The first reply asks at most about six questions and offers recommended defaults",
+        "Three theme colors are proposed with names, hex values and rationales, validated with scripts/palette.mjs --candidates",
+        "The image question offers AI generation only if an image-generation tool is connected, and asks where provided images can be found",
+        "Entrance animations and scroll animations are asked as two separate questions",
+        "DESIGN.md exists and records theme color, mode, personality, imagery and motion decisions",
+        "design/seo-plan.md maps one primary keyword cluster to each page, including local (Utrecht) phrases",
+        "design/presets/round-1.html contains exactly five .preset sections built on the presets shell, using the generated tokens and real draft copy (no lorem ipsum)",
+        "Each preset includes the first steps of the conversational lead form",
+        "The presentation message lists the five presets, recommends one, and asks the user to pick, mix, tweak or request five more",
+        "No React Router project is scaffolded before the user picks a preset"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Need a landing page for our Google Ads campaign: free roof inspection for homeowners in Rotterdam, by DakVakman (roofing company). Attached 4 screenshots of sites we like. Brand color is #C2410C. Must be live next week.",
+      "expected_output": "Recognises a campaign landing page (single goal, minimal navigation, message match), analyses the reference screenshots and keeps their style DNA in all five presets, uses the given brand color without proposing alternatives, and plans a form-first conversion path with UTM capture.",
+      "files": [],
+      "expectations": [
+        "The reference images are copied to design/references/ and summarised in a reference analysis in DESIGN.md",
+        "The brand color #C2410C is used; no alternative theme colors are proposed",
+        "The plan treats the page as a campaign landing page with minimal navigation and one call to action",
+        "At least one preset is form-first (the lead form starts in or right under the hero)",
+        "The lead form or plan carries UTM parameters into the lead as hidden fields"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Redesign our accountancy firm's website (https://example-accountants.nl). It looks dated and doesn't bring in leads. Keep our Google rankings!",
+      "expected_output": "Fetches and inventories the existing site (pages, URLs, content), plans a redirect map so rankings survive, runs the interview for missing answers only, and produces presets plus a migration-aware SEO plan.",
+      "files": [],
+      "expectations": [
+        "The existing site's URLs are listed and mapped to new URLs (redirect map) in the SEO plan",
+        "Questions already answered by the existing site are not asked again",
+        "The sitemap keeps or improves pages that likely rank, rather than deleting them"
+      ]
+    }
+  ]
+}

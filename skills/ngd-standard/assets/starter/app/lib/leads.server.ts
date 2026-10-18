@@ -14,7 +14,10 @@ export type Lead = {
   source?: string;
 };
 
+// Secrets and optional bindings. Typed here (not only via `wrangler types`) because .dev.vars is
+// git-ignored, so CI typechecks wouldn't see secrets that only exist there.
 type LeadBindings = {
+  TURNSTILE_SECRET_KEY?: string;
   DB?: D1Database;
   EMAIL?: SendEmail;
   LEAD_LIMITER?: RateLimit;

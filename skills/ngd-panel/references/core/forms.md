@@ -63,6 +63,7 @@ The starter in `assets/starter/app/components/forms/` (`StepForm/` plus the site
 - **Navigation buttons are `type="button"`**; only the final button submits. Native constraint attributes (`required`, `type`, `pattern`, `minlength`) do the validating: `checkValidity()` on the current fieldset's controls before advancing.
 - **`noValidate` is switched on after hydration** so the browser doesn't try to validate hidden steps on submit; the component validates every step itself and jumps to the first incomplete one.
 - **Server errors** come back from the action as `{ ok: false, errors: { fieldName: message } }`. The component jumps to the step containing the first failing field and shows the message inline.
+- **Attribution:** the form sends the page it was submitted from (`source`) and any `utm_*` parameters as hidden fields, so every lead shows which page and campaign produced it. The UTM fields render only after hydration, because prerendered HTML never contains the query string (rendering them on the server would cause hydration mismatches).
 - **Success:** the action returns `{ ok: true }` and the component swaps to the success state, or the action `redirect`s to a `/thank-you` page (noindex) if you track conversions by URL.
 
 ## 5. Server side: validation, spam, delivery

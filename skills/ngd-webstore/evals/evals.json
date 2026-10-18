@@ -1,0 +1,31 @@
+{
+  "skill_name": "ngd-webstore",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're Moss & Ember, a small specialty coffee roaster in Amsterdam. We want our own webshop to sell our beans, subscriptions and some brewing gear.",
+      "expected_output": "An interview that covers catalogue, platform, payments, shipping, markets and returns besides the shared look-and-feel questions; a reasoned commerce backend choice; commercial keyword research; five store presets that each show the homepage and the product page.",
+      "files": [],
+      "expectations": [
+        "The interview asks about catalogue size and variants, who manages products, payment methods, shipping and returns, and markets",
+        "A commerce backend is chosen with reasons recorded in DESIGN.md",
+        "design/seo-plan.md targets commercial category clusters (for example specialty coffee beans, coffee subscription) and product pages",
+        "Each of the five presets shows both a homepage part and a product page part (gallery, variant picker, price incl. VAT, add to cart, delivery and returns reassurance)",
+        "Prices are shown including VAT and the free-shipping threshold is visible",
+        "The plan mentions the EU withdrawal function and the 30-day prior price for discounts"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Make me a headless Shopify storefront on Cloudflare for my skate shop. We already run Shopify with 400 products; brand color #111111.",
+      "expected_output": "Keeps Shopify as the backend (Storefront API + Shopify checkout), plans redirects from existing Shopify URLs, handles a monochrome brand color correctly (palette notes), and plans SSR with caching rather than prerendering 400 products.",
+      "files": [],
+      "expectations": [
+        "Shopify stays the commerce backend; checkout stays hosted",
+        "Existing product and collection URLs are preserved or redirected",
+        "The monochrome brand is handled (dark-mode CTA inverts; neutral accent noted)",
+        "Catalogue pages are server-rendered with Workers Cache or a rebuild strategy, and cart/checkout are noindex and private"
+      ]
+    }
+  ]
+}

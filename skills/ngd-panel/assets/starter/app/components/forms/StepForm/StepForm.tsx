@@ -69,8 +69,10 @@ type Control = HTMLElement & { name: string; validationMessage: string; checkVal
 
 export function StepForm({ action = '/contact', submitLabel = 'Send', success, footnote, timeHint, turnstileSiteKey, children }: StepFormProps) {
   const fetcher = useFetcher<LeadActionData>();
-  const actionData = useActionData() as LeadActionData | undefined; // the no-JavaScript path posts to the page itself
   const location = useLocation();
+  // Without JavaScript the browser posts to the action route and that page renders the result
+  const pageActionData = useActionData() as LeadActionData | undefined;
+  const actionData = location.pathname === action ? pageActionData : undefined;
   const steps = Children.toArray(children).filter((c): c is ReactElement<StepProps> => isValidElement(c) && c.type === Step);
   const last = steps.length - 1;
 
@@ -200,6 +202,11 @@ export function StepForm({ action = '/contact', submitLabel = 'Send', success, f
         </div>
 
         <input type="hidden" name="source" value={location.pathname} />
+        {/* Campaign attribution. Rendered after hydration: prerendered HTML never contains the query string */}
+        {hydrated &&
+          [...new URLSearchParams(location.search)]
+            .filter(([key]) => key.startsWith('utm_'))
+            .map(([key, value]) => <input key={key} type="hidden" name={key} value={value.slice(0, 200)} />)}
         <div className={styles.honeypot} aria-hidden="true">
           <label>
             Leave this field empty

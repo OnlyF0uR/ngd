@@ -248,7 +248,7 @@ export const meta: Route.MetaFunction = ({ loaderData }) =>
     description: 'Hands-on sports massage near Utrecht Centraal. Book online in 30 seconds, same-week appointments.',
     path: '/services/sports-massage',
     image: '/og/sports-massage.jpg',
-    jsonLd: [serviceJsonLd(loaderData.service), breadcrumbJsonLd([...])],
+    jsonLd: [serviceJsonLd(loaderData.service), breadcrumbJsonLd([...])], // serviceJsonLd: your own helper next to the starter's
   });
 ```
 
@@ -333,6 +333,7 @@ Every dependency must justify its bytes. Fine: `isbot` (comes with the template)
 - Public, non-secret configuration in `wrangler.jsonc` `vars` (`TURNSTILE_SITE_KEY`, feature flags). Site facts that never differ per environment (production URL, contact details) live in `app/lib/site.ts`.
 - Secrets with `npx wrangler secret put NAME`; locally in `.dev.vars` (git-ignored). Commit a `.dev.vars.example` with the names and dummy values.
 - Re-run `npm run cf-typegen` (`wrangler types`) after changing bindings; the generated `worker-configuration.d.ts` types `Env` and the runtime. It is git-ignored and regenerated on install.
+- `wrangler types` learns secret names from `.dev.vars`, which is git-ignored, so a CI typecheck won't see them. Read secrets through a small typed helper with optional fields (the starter's `leadBindings(env)`), so code typechecks with or without `.dev.vars`.
 - Never put secrets in client code, `vars`, the repository or DESIGN.md.
 
 ## 18. Deploying
@@ -371,6 +372,7 @@ Plenty of tutorials (and some official pages) predate React Router v8. Don't cop
 | `create-react-router` fails behind a proxy | Run with `NODE_USE_ENV_PROXY=1` |
 | App renders with the Node entry or crashes on Workers | `@react-router/node`/`serve`/`express` is installed: remove it |
 | `Env` type is missing a binding | Run `npm run cf-typegen` after editing `wrangler.jsonc` |
+| A secret is missing from `Env` in CI only | `.dev.vars` is git-ignored, so `wrangler types` can't see it there: access secrets through a typed helper with optional fields (starter: `leadBindings`) |
 | `composes … from '~/…'` fails: "path from fileResolve must be absolute" | Add the explicit `~` alias to `vite.config.ts` (`resolve.alias`) |
 | DOM types act strangely (`HTMLSelectElement` not assignable to `Element`, `append` expects a `Response`) | The Workers runtime types redeclare the global `Element` (HTMLRewriter) in the shared tsconfig: use `HTMLElement` generics, structural types or `appendChild` |
 | Local Lighthouse: low performance, "page is blocked from indexing" | `vite preview` doesn't compress and the robots route blocks non-production hosts: measure a preview deployment or a compressing static server instead |

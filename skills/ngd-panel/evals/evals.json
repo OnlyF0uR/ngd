@@ -1,0 +1,29 @@
+{
+  "skill_name": "ngd-panel",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Brightline Solar installs solar panels for homeowners. We need a customer portal where customers follow their installation and see their documents and energy production, and an admin side for our office team to manage installations and planning.",
+      "expected_output": "An interview about users, roles, sign-in, data sources, top tasks and metrics; a panel plan instead of keyword research; five app-shell presets that each show the shell, a dashboard and a list view with a skeleton state and an empty state, handling both the customer and staff audiences.",
+      "files": [],
+      "expectations": [
+        "No keyword research is done; design/panel-plan.md lists users and roles, objects, top tasks, screens and dashboard contents",
+        "The sign-in recommendation distinguishes customers (magic link or similar) from staff (Microsoft 365 SSO)",
+        "Each preset shows an app shell, a dashboard and a list view, plus one skeleton loading state and one empty state",
+        "Realistic domain data is used (installations, crews, invoices), not placeholder items",
+        "The plan specifies noindex and private, no-store for the panel and server-side permission checks"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add an admin dashboard to my existing React Router site so my two employees can see and export the contact form leads.",
+      "expected_output": "Recognises a small internal admin: suggests Cloudflare Access instead of building auth, reuses the existing design system, keeps the interview short, and plans a leads table with filters and CSV export.",
+      "files": [],
+      "expectations": [
+        "Cloudflare Access (or equivalent zero-auth-code option) is recommended for a small internal team",
+        "The existing project's tokens and components are reused rather than restarted",
+        "The leads table uses URL-driven filters and pagination and offers CSV export"
+      ]
+    }
+  ]
+}

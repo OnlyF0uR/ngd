@@ -3,7 +3,7 @@ import type { Route } from './+types/contact';
 import { seo, breadcrumbJsonLd } from '~/lib/seo';
 import { site, telHref, whatsappHref } from '~/lib/site';
 import { cloudflareContext } from '~/lib/cloudflare-context';
-import { parseLead, saveLead, notifyOwner, withinRateLimit } from '~/lib/leads.server';
+import { parseLead, saveLead, notifyOwner, withinRateLimit, leadBindings } from '~/lib/leads.server';
 import { verifyTurnstile } from '~/lib/turnstile.server';
 import { LeadForm } from '~/components/forms/LeadForm';
 import type { LeadActionData } from '~/components/forms/StepForm/StepForm';
@@ -41,7 +41,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const parsed = parseLead(form);
   if (parsed.errors) return data<LeadActionData>({ ok: false, errors: parsed.errors }, { status: 400 });
 
-  const human = await verifyTurnstile(form.get('cf-turnstile-response'), env.TURNSTILE_SECRET_KEY, ip);
+  const human = await verifyTurnstile(form.get('cf-turnstile-response'), leadBindings(env).TURNSTILE_SECRET_KEY, ip);
   if (!human) {
     return data<LeadActionData>(
       { ok: false, errors: { form: `We couldn’t verify the request. Please try again, or email us at ${site.contact.email}.` } },
