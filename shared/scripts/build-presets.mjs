@@ -221,7 +221,7 @@ function build(o) {
 
   replaceOne(/<!-- ngd:fonts[^>]*-->/, fontLinks || '<!-- no web fonts -->', 'fonts marker');
   replaceOne(/<html lang="[^"]*">/, `<html lang="${esc(config.lang || 'en')}">`, 'html element');
-  replaceOne(/<title>[^<]*<\/title>/, `<title>${esc(project)}: design presets, round ${round}</title>`, 'title');
+  replaceOne(/<title>[^<]*<\/title>/, `<title>${esc(project)} presets${round > 1 ? ` round ${round}` : ''}</title>`, 'title');
   replaceOne(/<span class="ngd-brand">[^<]*<\/span>/, `<span class="ngd-brand">${esc(project)}</span>`, 'toolbar name');
   replaceOne(/<span class="ngd-round">[^<]*<\/span>/, `<span class="ngd-round">Round ${round}</span>`, 'round label');
   replaceOne(/<style id="tokens">[\s\S]*?<\/style>/, `<style id="tokens">\n${tokens.trim()}\n</style>`, 'tokens style');

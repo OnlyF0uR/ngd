@@ -27,7 +27,7 @@ Work through the phases in order. Each one ends with something the user can see 
 |---|---|---|
 | 0. Orient | what exists, which tools and environment you have, which ngd skills apply | this section |
 | 1. Discover | interview answers → `DESIGN.md` | `references/core/discovery.md` |
-| 2. Research | keyword plan + competitor notes → `design/seo-plan.md` | `references/core/seo.md` |
+| 2. Research | keyword plan + competitor notes → `design/seo-plan.md` (panels: domain research → `design/panel-plan.md`) | `references/core/seo.md` (panels: the ngd-panel SKILL.md) |
 | 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md`; for the draft copy, form and motion idea also `copywriting.md`, `forms.md`, `motion.md` and `imagery.md` in `references/core/` |
 | 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` |
 | 5. Build | every page or screen with real content, forms, images, motion | this skill's references, plus `references/core/` forms, copywriting, imagery and motion |
@@ -37,7 +37,7 @@ Work through the phases in order. Each one ends with something the user can see 
 ### Phase 0: orient (before your first question)
 - **Resume if possible.** If `DESIGN.md` exists in the project root, read it, tell the user where things stand, and continue from its *Next step* instead of interviewing again.
 - **Look at what exists:** an existing codebase (package.json, React Router and Wrangler config), a live site to replace (fetch it: content, structure, URLs that need redirects), brand assets, and any images the user supplied. Reference images outrank the default style: save image files to `design/references/`; for images pasted into the conversation, analyse what you see directly (`references/core/design-language.md`, section 12) and ask for the files only if they're needed in the project.
-- **Inventory your tools**, because they change what you can offer: structured questions (such as AskUserQuestion), web search and fetch (keyword research), image generation (any connected tool that creates images), a browser or Playwright (screenshots), a way to show HTML (artifact or preview). Never offer what you can't do.
+- **Inventory your tools**, because they change what you can offer: structured questions (such as AskUserQuestion), web search and fetch (keyword research), image generation (any connected tool that creates images), a browser or Playwright (screenshots), a way to show HTML (artifact or preview). Count tools that are listed by name and loaded on demand too. Never offer what you can't do, and when what you find contradicts what the user said (they expect no image tool, but one is connected), mention it once and follow the user.
 - **Check the environment** and pick the matching mode:
   - *Full* (a shell with Node and network access, such as Claude Code on a machine or cloud container): every phase as written.
   - *Sandbox without network* (some API and hosted code-execution environments): no installs, scaffolding or web research. Run the interview and presets as written (the scripts need only Node), assemble the project by hand from `assets/starter/`, deliver it as files or a zip with the exact commands the user runs (`npm install`, `npm run build`, deploy), and list every check you couldn't run.
@@ -86,8 +86,9 @@ Theme color, color mode, fonts, motion level and imagery are always the user's d
 ## What's specific to panels
 
 ### Phase differences
-- **Research (phase 2):** skip keyword research; panels aren't indexed. Instead, research the domain: the objects (customers, orders, invoices…), the 3–5 most frequent tasks, the numbers people check, and how comparable tools structure them. Write a short `design/panel-plan.md`: users and roles, objects, top tasks, screens, navigation and dashboard contents.
-- **Presets (phase 3):** if a public site or store is part of the project, its chosen direction comes first; the panel presets inherit its tokens and typography and vary the shell structure, density and component styling.
+- **Discovery (phase 1):** for a panel on its own, the site questions in round 1 (visitor action, proof, competitors, sitemap, leads, legal pages) don't apply; the questions below replace them. Recommend no scroll animations (people work in panels, they don't scroll through a story) and at most a subtle entrance on first load; motion lives in micro-interactions, skeleton shimmer and quick route transitions. If the public site exists elsewhere, take its colors, fonts (from its CSS) and logo; if you can't reach them, ask for the logo and brand color, and propose fonts in the presets as an assumption.
+- **Research (phase 2):** skip keyword research; panels aren't indexed. Instead, research the domain: the objects (customers, orders, invoices…), the 3–5 most frequent tasks, the numbers people check, and how comparable tools structure them. Write a short `design/panel-plan.md` with these headings: users and roles (per audience) · objects · top tasks · screens and routes · navigation per audience · dashboard contents · data sources and freshness · states to design (loading, empty, error, permission denied). Share a five-line summary with the user, like the SEO summary for sites.
+- **Presets (phase 3):** if a public site or store is part of the project, its chosen direction comes first; the panel presets inherit its tokens and typography and vary the shell structure, density and component styling. The "one preset that leads with conversion" rule becomes "one that leads with the top task".
 
 ### Extra discovery questions
 Merge these into the core rounds; a short fourth round for roles and data is fine. Skip whatever the request already answers. For a panel, the theme color usually comes from the public site; ask about it only when there is none.
@@ -100,6 +101,7 @@ Merge these into the core rounds; a short fourth round for roles and data is fin
 - **Devices:** mostly desktop, or also on the phone (which tasks)?
 
 **Assume and state in the playback** (the user corrects in one line):
+- **Locale:** the language, currency, date and number formats of the business's country (the draft data in the presets uses them).
 - **Organisations or teams:** a single organisation unless they mentioned customers' teams or invitations.
 - **Notifications, exports and audit:** email for the events that need action, CSV export on every list, an audit trail of admin changes, data export and deletion on request (GDPR).
 - **Density and mode:** comfortable density (compact for data-heavy internal tools); light and dark following the system setting.
@@ -117,7 +119,7 @@ Pick five that suit the users and tasks and that differ strongly (`references/co
 5. **Bento Overview:** rounded inset surfaces and a dashboard of widgets in a bento grid, warm and visual. Suits consumer-facing apps and analytics.
 6. **Dense Workbench:** compact tables, a filter bar with saved views and multiple panes. Suits power users and back-office operations.
 
-**What each preset shows:** the app shell (desktop sidebar or top nav, plus the mobile navigation), the dashboard (attention area, KPI cards, a chart placeholder, recent activity), and a list view (toolbar with search and filter chips, a table with status pills and a selected row, an open detail drawer). Include one **skeleton loading state** and one **empty state** somewhere in each preset, so the user sees how waiting and starting feel. Show each screen as its own part (`<div class="ngd-part" data-part="Installations list"></div>` before it), so the screenshot script captures every screen. Use realistic domain data from the brief, not "Lorem" or "Item 1".
+**What each preset shows:** the app shell (desktop sidebar or top nav, plus the mobile navigation), the dashboard (attention area, KPI cards, a chart placeholder, recent activity), and a list view (toolbar with search and filter chips, a table with status pills and a selected row, and the record's detail in an open drawer, or in the detail pane for split layouts). **Two audiences** (a customer portal plus a back office, `references/panel-ux.md` section 12): show the customer home at phone size, then the staff dashboard and list, in each preset, and keep each screen lighter so the file stays lean. Keep the draft data identical across presets; generating the `pN.html` files from one small data module with a script is fine. Include one **skeleton loading state** and one **empty state** somewhere in each preset, so the user sees how waiting and starting feel. Show each screen as its own part (`<div class="ngd-part" data-part="Installations list"></div>` before it), so the screenshot script captures every screen. Use realistic domain data from the brief, not "Lorem" or "Item 1".
 
 ### Build notes
 - **Structure:** a panel layout route with auth middleware, `noindex` and `private, no-store` headers, and the shell. Each page follows the page anatomy (header, toolbar, content, optional drawer).

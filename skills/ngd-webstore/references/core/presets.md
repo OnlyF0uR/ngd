@@ -42,7 +42,7 @@ Five variations of one template are useless: the user can't compare, so they can
 
 Rules of thumb:
 - **All five are on-brief.** A daring preset still serves the audience and the conversion goal.
-- **Include a range:** at least one that feels category-native and safe, at least one that feels bold, and one that leads with conversion (form or booking in or right under the hero).
+- **Include a range:** at least one that feels category-native and safe, at least one that feels bold, and one that leads with conversion (form or booking in or right under the hero; for panels, one that leads with the top task).
 - **Name each preset after its idea** ("Quiet Authority", "Sunday Market", "Night Shift"), not "Option 1". Names make feedback easy ("more Sunday Market, less pink").
 - **Respect fixed answers.** If the user chose dark only, all five are dark; vary the rest. If they supplied reference images, all five keep the references' style DNA (palette, type mood, shape, imagery style) and vary layout, composition and emphasis. Tell the user that is what you did.
 - **Draw on the archetypes** listed in the skill's SKILL.md, but combine and adapt them to the brief; don't use them as fixed templates.

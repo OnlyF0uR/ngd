@@ -18,7 +18,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Project name: design presets, round 1</title>
+<title>Project name presets</title>
 <!-- ngd:fonts (font stylesheet links for the presets; only the families and weights you use) -->
 <style id="tokens">
 /* ngd:tokens: replace with palette.mjs output. ngd:fallback-tokens (these only exist so the empty shell renders) */
@@ -32,6 +32,11 @@
 <style id="shell">
   /* ---------- shell chrome (neutral on purpose: it must not compete with the presets) ---------- */
   *, *::before, *::after { box-sizing: border-box; }
+  /* Non-color tokens the presets may use, the same names as the starter's global.css. Radius and spacing
+     belong to each direction's shape language and density, so presets define their own. */
+  :root { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms; --dur-reveal: 600ms;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06); --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 0.18); --shadow-lg: 0 24px 64px -16px rgb(0 0 0 / 0.28); }
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: #e9e9e7; color: #161616; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   body[data-chrome="dark"] { background: #1a1a1a; }
@@ -215,7 +220,7 @@
         <dt>Color &amp; shape</dt><dd>…</dd>
         <dt>Imagery</dt><dd>…</dd>
         <dt>Motion idea</dt><dd>…</dd>
-        <dt>Conversion path</dt><dd>…</dd>
+        <dt>Conversion path (or, for panels, the main task path)</dt><dd>…</dd>
         <dt>Trade-offs</dt><dd>…</dd>
       </dl>
     </template>
@@ -224,7 +229,7 @@
 <!-- ngd:presets:end -->
 </div>
 
-<p class="ngd-hint">Reply with the number you like best · or mix them (“hero from 2, sections from 4”) · or ask for five new directions.
+<p class="ngd-hint">Reply with the number you like best · or mix them (“the layout of 2 with the type of 4”) · or ask for five new directions.
 Keys: <b>1–5</b> or <b>←/→</b> switch · <b>D/T/M</b> viewport · <b>O</b> overview · <b>L</b> light/dark · <b>N</b> notes</p>
 
 <script>
@@ -289,11 +294,11 @@ Keys: <b>1–5</b> or <b>←/→</b> switch · <b>D/T/M</b> viewport · <b>O</b>
   function setView(v) {
     state.view = v;
     document.body.dataset.view = v;
-    document.querySelectorAll('[data-view]').forEach((b) => b.matches('button') && b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+    document.querySelectorAll('.ngd-bar button[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
     select(state.index);
   }
 
-  document.querySelectorAll('button[data-view]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
+  document.querySelectorAll('.ngd-bar button[data-view]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   themeGroup.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { state.theme = b.dataset.setTheme; applyTheme(); }));
   notesToggle.addEventListener('click', () => {
     notesPanel.hidden = !notesPanel.hidden;

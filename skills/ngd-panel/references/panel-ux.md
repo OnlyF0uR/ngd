@@ -117,6 +117,8 @@ Sections as separate pages under one settings layout with side navigation: Profi
 | Brand | Closer to the public site | Calmer, neutral, brand in accents |
 | Typical screens | Orders, invoices, subscriptions, profile, support, withdrawal/returns (shops) | Records CRUD, approvals, reporting, audit log, roles |
 
+**One product, both audiences** (a customer portal plus the office that serves those customers): build two shells on one design system. Each audience gets its own route prefix and layout route (`/account` for customers, `/admin` for staff), its own navigation and its own density default, while tokens, typography, components and data stay shared. The customer side is usually phone-first (large tap targets, bottom tab bar, plain language, one clear next step); the staff side is desktop-first (sidebar, dense tables, keyboard paths). Permissions keep them apart on the server: staff routes check staff roles, customer routes scope every query to the signed-in customer. Where the two meet (a message thread, a document, an appointment), show the same object with each side's actions.
+
 ## 13. Density, theming and the design system
 
 - Reuse the public site's tokens (palette.mjs output), typography and primitives so the panel feels like the same brand; tune for density: base text 14–15px, tighter spacing scale, smaller radii if the public site is very soft.

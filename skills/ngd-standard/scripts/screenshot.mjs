@@ -18,6 +18,7 @@
  *   --theme light|dark|both  emulate prefers-color-scheme (default: light; dark files get a -dark suffix)
  *   --motion           keep animations (default: reduced motion, so scroll reveals don't hide content)
  *   --presets          treat the input as an NGD presets file and capture each preset
+ *   --views a,b        presets: which viewer views to capture (default: desktop,mobile; add tablet for 820px)
  *   --wait <ms>        extra wait after load (default: 600)
  *
  * Needs Playwright with Chromium. If it is missing:  npm i -D playwright && npx playwright install chromium
@@ -49,7 +50,7 @@ async function loadPlaywright() {
 }
 
 function parseArgs(argv) {
-  const o = { inputs: [], out: undefined, widths: [390, 768, 1440], height: undefined, screens: 2, full: false, theme: 'light', motion: false, presets: false, wait: 600 };
+  const o = { inputs: [], out: undefined, widths: [390, 768, 1440], height: undefined, screens: 2, full: false, theme: 'light', motion: false, presets: false, wait: 600, views: ['desktop', 'mobile'] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--out') o.out = argv[++i];
@@ -60,6 +61,7 @@ function parseArgs(argv) {
     else if (a === '--motion') o.motion = true;
     else if (a === '--theme') o.theme = argv[++i];
     else if (a === '--presets') o.presets = true;
+    else if (a === '--views') o.views = argv[++i].split(',').map((v) => v.trim()).filter((v) => ['desktop', 'tablet', 'mobile'].includes(v));
     else if (a === '--wait') o.wait = Number(argv[++i]);
     else if (a.startsWith('--')) throw new Error(`Unknown option ${a}`);
     else o.inputs.push(a);
@@ -142,9 +144,9 @@ async function capturePresets(browser, o) {
   const suffix = o.theme === 'dark' ? '-dark' : '';
   for (const p of presets) {
     if (!p.themes.includes(o.theme)) continue; // a light-only preset has no dark variant to capture
-    for (const view of ['desktop', 'mobile']) {
-      await page.setViewportSize(view === 'desktop' ? { width: 1472, height: 900 } : { width: 430, height: 900 });
-      await page.goto(`${url.split('#')[0]}#preset=${p.index}${view === 'desktop' ? '' : '&view=mobile'}`);
+    for (const view of o.views) {
+      await page.setViewportSize({ width: { desktop: 1472, tablet: 900, mobile: 430 }[view], height: 900 });
+      await page.goto(`${url.split('#')[0]}#preset=${p.index}${view === 'desktop' ? '' : `&view=${view}`}`);
       await page.reload({ waitUntil: 'load' });
       await page.waitForTimeout(o.wait);
       const frame = page.locator('.ngd-preset.is-active .ngd-frame');
@@ -161,7 +163,7 @@ async function capturePresets(browser, o) {
       const top = box.y;
       const bottom = box.y + box.height;
       const starts = [{ label: '', y: top }, ...parts.filter((part) => part.y > top && part.y < bottom)];
-      const cap = view === 'desktop' ? 1800 : 1700;
+      const cap = view === 'mobile' ? 1700 : 1800;
       for (const [k, part] of starts.entries()) {
         const end = o.full ? (starts[k + 1]?.y ?? bottom) : Math.min(starts[k + 1]?.y ?? bottom, part.y + cap);
         const name = part.label ? `-${part.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}` : '';
@@ -228,7 +230,7 @@ async function main() {
       for (const e of problems) console.log(`  - ${e}`);
       process.exitCode = 1;
     } else {
-      console.log(`\nNo problems found in ${basename(o.inputs[0])}${o.presets ? ' (runtime errors, file checks, overflow at 390px)' : ' (runtime errors, HTTP status, horizontal overflow)'}. Now look at the screenshots.`);
+      console.log(`\nNo problems found in ${basename(o.inputs[0])}${o.presets ? ' (runtime errors, file checks, overflow inside the frame)' : ' (runtime errors, HTTP status, horizontal overflow)'}. Now look at the screenshots.`);
     }
   } finally {
     await browser.close();

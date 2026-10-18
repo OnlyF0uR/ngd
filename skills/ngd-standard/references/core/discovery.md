@@ -67,7 +67,7 @@ Ask: **"Will the site use photos or illustrations?"**
 Ask two separate questions, because they are different experiences:
 - **Entrance animations when a page loads:** none · subtle (recommended — headline and visuals settle in quickly) · expressive (choreographed hero, more personality).
 - **Scroll animations:** none · subtle reveals (recommended) · storytelling (sticky sections, scroll-linked effects).
-Mention that motion never delays content and always respects the "reduce motion" setting — some users worry animation means slow.
+Mention that motion never delays content and always respects the "reduce motion" setting — some users worry animation means slow. For a panel, recommend no scroll animations and at most a subtle entrance on first load: people work in panels rather than scroll through them.
 
 ### Content and conversion
 - **Pages:** propose a sitemap based on the site type and round 1 (see the skill's own guidance); ask what to add or remove.

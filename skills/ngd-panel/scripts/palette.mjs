@@ -262,10 +262,17 @@ function semantic(mode, brandHex, brand, neutrals, opts, notes) {
         );
       }
     }
-    if (contrast(ramp[accentStep], bg) < 1.6) {
+    const fill = contrast(ramp[accentStep], bg);
+    if (fill < 1.6) {
       notes.push(
         'light mode: the brand is very light — a brand-filled button barely separates from the page. Prefer brand as a section/field ' +
           'background with ink (--neutral-950) buttons on top, or give brand buttons a 1px --color-border-strong outline.',
+      );
+    } else if (fill < 3) {
+      notes.push(
+        `light mode: brand-filled buttons reach only ${fill.toFixed(2)}:1 against the page. Their dark label keeps them readable, but on ` +
+          'light backgrounds they look faint: consider ink (--neutral-950) buttons with the brand as fields and highlights, or a 1px ' +
+          '--color-border-strong outline.',
       );
     }
   } else if (hexToOklch(brandHex).C < 0.03) {
@@ -337,6 +344,19 @@ function buildPalette(brandHex, opts) {
   // Both schemes are always built: single-mode sites still use data-theme bands.
   const schemes = {};
   for (const m of ['light', 'dark']) schemes[m] = semantic(m, hex, brand, neutrals, opts, notes);
+  // A saturated brand close to a status hue (amber vs warning, red vs danger, green vs success) makes
+  // status messages look like brand accents.
+  if (lch.C >= 0.06) {
+    for (const [name, hue] of Object.entries(STATUS_HUES)) {
+      const distance = Math.abs(((lch.H - hue + 540) % 360) - 180);
+      if (distance < 25) {
+        notes.push(
+          `the brand hue is close to the ${name} color (${schemes.light.tokens[`--color-${name}`]}), so ${name} messages can read as brand ` +
+            `accents. Always pair status colors with an icon and a word, and keep brand-colored badges and alerts for non-status uses.`,
+        );
+      }
+    }
+  }
   return { hex, lch, brand, neutrals, schemes, notes };
 }
 

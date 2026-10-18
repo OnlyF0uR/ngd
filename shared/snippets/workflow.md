@@ -8,7 +8,7 @@ Work through the phases in order. Each one ends with something the user can see 
 |---|---|---|
 | 0. Orient | what exists, which tools and environment you have, which ngd skills apply | this section |
 | 1. Discover | interview answers → `DESIGN.md` | `references/core/discovery.md` |
-| 2. Research | keyword plan + competitor notes → `design/seo-plan.md` | `references/core/seo.md` |
+| 2. Research | keyword plan + competitor notes → `design/seo-plan.md` (panels: domain research → `design/panel-plan.md`) | `references/core/seo.md` (panels: the ngd-panel SKILL.md) |
 | 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md`; for the draft copy, form and motion idea also `copywriting.md`, `forms.md`, `motion.md` and `imagery.md` in `references/core/` |
 | 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` |
 | 5. Build | every page or screen with real content, forms, images, motion | this skill's references, plus `references/core/` forms, copywriting, imagery and motion |
@@ -18,7 +18,7 @@ Work through the phases in order. Each one ends with something the user can see 
 ### Phase 0: orient (before your first question)
 - **Resume if possible.** If `DESIGN.md` exists in the project root, read it, tell the user where things stand, and continue from its *Next step* instead of interviewing again.
 - **Look at what exists:** an existing codebase (package.json, React Router and Wrangler config), a live site to replace (fetch it: content, structure, URLs that need redirects), brand assets, and any images the user supplied. Reference images outrank the default style: save image files to `design/references/`; for images pasted into the conversation, analyse what you see directly (`references/core/design-language.md`, section 12) and ask for the files only if they're needed in the project.
-- **Inventory your tools**, because they change what you can offer: structured questions (such as AskUserQuestion), web search and fetch (keyword research), image generation (any connected tool that creates images), a browser or Playwright (screenshots), a way to show HTML (artifact or preview). Never offer what you can't do.
+- **Inventory your tools**, because they change what you can offer: structured questions (such as AskUserQuestion), web search and fetch (keyword research), image generation (any connected tool that creates images), a browser or Playwright (screenshots), a way to show HTML (artifact or preview). Count tools that are listed by name and loaded on demand too. Never offer what you can't do, and when what you find contradicts what the user said (they expect no image tool, but one is connected), mention it once and follow the user.
 - **Check the environment** and pick the matching mode:
   - *Full* (a shell with Node and network access, such as Claude Code on a machine or cloud container): every phase as written.
   - *Sandbox without network* (some API and hosted code-execution environments): no installs, scaffolding or web research. Run the interview and presets as written (the scripts need only Node), assemble the project by hand from `assets/starter/`, deliver it as files or a zip with the exact commands the user runs (`npm install`, `npm run build`, deploy), and list every check you couldn't run.
