@@ -71,7 +71,7 @@ Use fluid sizes with `clamp()` so type scales smoothly between 390px and 1440px.
 - **Display:** weight 500–600 for refined, 700–800 for bold; line-height 0.9–1.05; letter-spacing −0.02em to −0.045em (bigger means tighter). Serif displays need less negative tracking (−0.01 to −0.02em).
 - **Headings (h2–h4):** line-height 1.1–1.25, tracking −0.01 to −0.025em.
 - **Body:** 16–18px (marketing pages lean 17–18px), line-height 1.5–1.65, measure 55–72 characters (`max-width: var(--measure)`, 65ch, on the paragraph itself, not on its section). Grotesks benefit from −0.005 to −0.011em tracking.
-- **Labels and eyebrows:** 12–13px, uppercase with +0.04 to +0.08em tracking, or a mono face; weight 500–600.
+- **Labels and eyebrows:** 12–13px, uppercase with +0.04 to +0.08em tracking, or a mono face; weight 500–600. Plain text in the text or accent-text color, at most with a short rule beside it: never a pill, chip or tag with a background or outline (section 7).
 - **Numbers:** `font-variant-numeric: tabular-nums` for prices, stats, tables and anything that updates.
 - `text-wrap: balance` on headings, `text-wrap: pretty` on paragraphs.
 - Left-align anything longer than two lines. Centre only short statements and CTA blocks.
@@ -158,7 +158,9 @@ A side-by-side split is fine when the visual has to sit next to the words (a pro
 
 **Cards.** Padding 20–32px; radius from the shape language; hover lifts by 2px with a shadow or border-color shift. A whole-card link uses one real `<a>` (on the title) stretched with a pseudo-element, so screen readers hear one link.
 
-**Badges and pills.** 24–28px tall, 12–13px text, tinted background (`--color-accent-subtle` with `--color-accent-text`). An **announcement pill** above the hero headline ("New: online booking →") is a great place for a timely message.
+**Badges and pills.** 24–28px tall, 12–13px text, tinted background (`--color-accent-subtle` with `--color-accent-text`). They mark status on an item: "Sale" or "New" on a product image, "Recommended" on the edge of a pricing card, a status in a table or a product UI fragment.
+
+**No pills above headings.** Never put a pill, chip, badge or tag above a headline or title: not the "✨ New: online booking →" announcement pill over the hero, not "Our services" or "How it works" in a rounded capsule over a section heading, not a "Step 1" or category chip over a card title. It is one of the most recognisable template tells. Label a section with a plain-text eyebrow (section 3) or with nothing: a good heading doesn't need one. A timely message goes in a slim announcement bar above the site header, as a text link in the hero's proof row, or in its own section.
 
 **Proof elements.** Logo walls in monochrome at about 60% opacity, 5–7 logos at equal visual weight. Ratings with their source and count ("4.9 on Google · 312 reviews"). Testimonials with a real photo, name, role and a specific outcome. Big numbers with tabular figures and a short label.
 
@@ -175,10 +177,9 @@ A side-by-side split is fine when the visual has to sit next to the words (a pro
 ## 8. Signature details (pick one to three)
 
 Small, consistent touches make a site memorable. Choose what suits the personality and repeat it across the site:
-- Eyebrow labels with a short rule or a mono typeface.
+- Eyebrow labels with a short rule or a mono typeface (plain text, never in a pill).
 - Numbered items (01, 02, 03) in benefit lists and process steps.
 - Two-tone or italic-accent headlines.
-- An announcement pill above the hero headline.
 - A split CTA: rectangular label button with an attached circular arrow button.
 - Hairline grid lines that frame sections, like a technical drawing.
 - Product UI fragments (status pills, toasts, chart snippets) used as proof visuals.
@@ -209,7 +210,7 @@ Small, consistent touches make a site memorable. Choose what suits the personali
 ## 11. Anti-patterns
 
 Avoid these. They make sites look generic, slow or untrustworthy:
-- **Template tells:** every section boxed in a centred ~1200px column with empty bands on wide screens; a hero with the copy on the left and a photo on the right by default; feature rows that zig-zag text and image down the page; breadcrumb trails ("Home / About") above headlines; everything centred; three identical cards with emoji or stock icons; purple-to-blue gradients without a reason; generic stock photos (handshakes, people pointing at screens); "Welcome to our website" headlines.
+- **Template tells:** every section boxed in a centred ~1200px column with empty bands on wide screens; a hero with the copy on the left and a photo on the right by default; feature rows that zig-zag text and image down the page; breadcrumb trails ("Home / About") above headlines; pills or chips above headlines ("✨ New", "Our services" in a capsule); everything centred; three identical cards with emoji or stock icons; purple-to-blue gradients without a reason; generic stock photos (handshakes, people pointing at screens); "Welcome to our website" headlines.
 - **Speed and SEO killers:** preloaders and splash screens; hero content hidden until JavaScript or an animation runs; scroll-jacking and smooth-scroll libraries; heavy parallax; autoplaying hero sliders; huge background videos without a poster; chat widgets and third-party scripts loading on first paint.
 - **Hostile patterns:** popups on load or on exit intent (they also hurt rankings on mobile); cookie walls that block content; fake urgency or invented reviews; pre-ticked consent boxes.
 - **Readability failures:** low-contrast grey text; body text under 16px; lines wider than 80 characters; text over busy photos without a scrim; all-caps paragraphs.

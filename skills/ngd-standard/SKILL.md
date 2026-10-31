@@ -113,7 +113,7 @@ Pick five that suit the brief and differ strongly (see `references/core/presets.
 7. **Editorial Story:** magazine layout, serif display, long-form narrative, pull quotes. Suits personal brands, consultancies and craft businesses.
 8. **Local Clarity:** trust bar (rating, phone, hours), service cards, service-area map and a sticky mobile call/WhatsApp bar. Suits trades and clinics.
 
-**What each preset shows:** the homepage with header and mobile navigation, the hero, the proof band, three to five core sections in the planned order, the first two steps of the conversational form, the final CTA and the footer. Use real draft copy from the brief and keyword plan. Every preset uses the full width (no centred container), at most one has a copy-beside-image split hero, and none shows a breadcrumb trail (`references/core/design-language.md`, sections 5 and 7).
+**What each preset shows:** the homepage with header and mobile navigation, the hero, the proof band, three to five core sections in the planned order, the first two steps of the conversational form, the final CTA and the footer. Use real draft copy from the brief and keyword plan. Every preset uses the full width (no centred container), at most one has a copy-beside-image split hero, none shows a breadcrumb trail, and no headline or title has a pill, chip or badge above it: eyebrows are plain text (`references/core/design-language.md`, sections 5 and 7).
 
 ### Build notes
 - **Sitemap and templates:** build every page in `design/seo-plan.md` from the templates in `references/page-anatomy.md`. Prerender everything except routes with an action (contact) and pages with per-request data.

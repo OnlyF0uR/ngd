@@ -19,7 +19,8 @@
         "The presentation message lists the five presets, recommends one, and asks the user to pick, mix, tweak or request five more",
         "No React Router project is scaffolded before the user picks a preset",
         "Every preset uses the full frame width at desktop size: no section sits in a centred max-width column (screenshot.mjs --presets reports no boxed sections)",
-        "At most one of the five presets has a hero with the copy on one side and an image on the other"
+        "At most one of the five presets has a hero with the copy on one side and an image on the other",
+        "No preset puts a pill, chip or badge above a headline or section heading (no announcement pill over the hero, no capsule labels over section titles); any eyebrow is plain text, and screenshot.mjs --presets reports no pills above headings"
       ]
     },
     {

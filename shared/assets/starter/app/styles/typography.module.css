@@ -21,6 +21,7 @@
   text-wrap: balance;
 }
 
+/* Plain text, never a pill: no background, outline or radius (design-language.md sections 3 and 7) */
 .eyebrow {
   font-size: var(--text-xs);
   font-weight: 600;
