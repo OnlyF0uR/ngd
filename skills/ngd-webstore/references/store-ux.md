@@ -40,7 +40,7 @@ Job: show what the store is about and route people into the catalogue fast.
 - **Header block:** H1 (the category's keyword), a short intro (expandable if long), subcategory chips.
 - **Controls:** product count, sort (featured, newest, price low/high, best rated), filters. Desktop: a sidebar with collapsible groups and counts. Mobile: a "Filters" button opening a full-height sheet with "Show 48 products" as its apply button. Applied filters appear as removable chips with "Clear all".
 - **Product card:** image (second image on hover for desktop), name, price including VAT (sale price + prior price when discounted), color swatches with names, rating with count, honest badges (New, Sale, Low stock if true), wishlist heart, quick add for simple products. The whole card is one link (single anchor stretched over the card) with separate buttons for heart and quick add.
-- **Grid:** two columns on mobile, 3–4 on desktop; consistent aspect ratio; no layout shift while images load.
+- **Grid:** two columns on mobile, 3–4 at 1440px and more on wider screens (the grid spans the full width; no centred container); consistent aspect ratio; no layout shift while images load.
 - **Pagination:** "Load more" with real paginated links underneath, or numbered pages; keep scroll position when returning from a product.
 - **Empty state:** "No products match these filters" with one-click removal of the last filter.
 
@@ -54,6 +54,7 @@ The page that sells. Above the fold on mobile: image, name, price, rating, varia
 - **Reviews:** summary with distribution, filters (rating, with photos), verified-purchase labels, newest/most helpful sort, a note on how reviews are verified.
 - **Cross-sell:** "Complete the look" or "Often bought together" (one rail), plus recently viewed. Keep it below the buy box, never between image and price.
 - **Out of stock:** clear status, back-in-stock email signup, alternatives in the same category.
+- **Context without a trail:** no breadcrumb trail above the title. The header highlights the active category, the category is a link in the details ("Part of: Trail running"), and a rail offers more from it ("More trail running shoes"). Returning to the category keeps the scroll position.
 
 ## 5. Cart
 

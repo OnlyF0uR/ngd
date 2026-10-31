@@ -42,12 +42,14 @@
   --space-9: 6rem;
   --space-10: 8rem;
   --section-y: clamp(4rem, 10vw, 9rem);
-  --gutter: clamp(1.25rem, 5vw, 4rem);
 
-  /* Layout */
-  --container: 75rem;
-  --container-wide: 85rem;
-  --container-prose: 45rem;
+  /*
+   * Layout: sections span the full width and the gutter sets the edges; there is no centred container.
+   * Above 120rem (1920px) the gutter grows so lines stay within reach on ultra-wide screens.
+   * --measure limits text (paragraphs), never sections.
+   */
+  --gutter: max(clamp(1.25rem, 4vw, 5rem), (100vw - 120rem) / 2);
+  --measure: 65ch;
   --header-h: 4.5rem;
 
   /* Shape (soft defaults; switch to the preset's shape language) */

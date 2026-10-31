@@ -17,7 +17,9 @@
         "scripts/screenshot.mjs --presets was run and its problems (if any) were fixed before presenting",
         "Each preset includes the first steps of the conversational lead form",
         "The presentation message lists the five presets, recommends one, and asks the user to pick, mix, tweak or request five more",
-        "No React Router project is scaffolded before the user picks a preset"
+        "No React Router project is scaffolded before the user picks a preset",
+        "Every preset uses the full frame width at desktop size: no section sits in a centred max-width column (screenshot.mjs --presets reports no boxed sections)",
+        "At most one of the five presets has a hero with the copy on one side and an image on the other"
       ]
     },
     {
@@ -41,7 +43,8 @@
       "expectations": [
         "The existing site's URLs are listed and mapped to new URLs (redirect map) in the SEO plan",
         "Questions already answered by the existing site are not asked again",
-        "The sitemap keeps or improves pages that likely rank, rather than deleting them"
+        "The sitemap keeps or improves pages that likely rank, rather than deleting them",
+        "No preset or planned page shows a breadcrumb trail, even if the current site has one; the hierarchy is kept by URLs, navigation and hub-to-spoke links"
       ]
     }
   ]

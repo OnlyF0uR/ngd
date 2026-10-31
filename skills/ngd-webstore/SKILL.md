@@ -115,18 +115,18 @@ Pick five that suit the brand and catalogue and that differ strongly (`reference
 2. **Brand Story:** full-bleed lifestyle hero, editorial collection stories, a shoppable lookbook, editorial shapes. Suits fashion, interiors and premium DTC.
 3. **Hero Product:** one flagship product as the homepage, with product-page depth (benefits, details, reviews, comparison). Suits single-product brands and launches.
 4. **Drop Culture:** bold type, high contrast, oversized product shots, limited collections, often dark. Suits streetwear, sneakers and collectibles.
-5. **Minimal Premium:** lots of whitespace, a small grid, serif accents, a slow, confident pace. Suits luxury, jewellery and craft.
+5. **Minimal Premium:** lots of whitespace, few large products per row, serif accents, a slow, confident pace. Suits luxury, jewellery and craft.
 6. **Bento Collections:** collections and categories in a playful bento grid with mixed image sizes. Suits lifestyle, gifts and food.
 7. **Guided Finder:** a short quiz in the hero ("Find your roast") that leads to recommended products. Suits coffee, skincare, mattresses and anything where choice paralysis kills sales.
 
-**What each preset shows:** one long page in two parts. First the **homepage** (header with search and cart, USP bar, hero, category entry points, a product rail or grid with real-looking cards and prices, proof, footer). Then, after a `<div class="ngd-part" data-part="Product page"></div>` divider (the screenshot script captures each part), the **product page** (gallery, buy box with variant picker, price, delivery and returns reassurance, details accordion, reviews summary). Add the open cart drawer if the direction has a distinctive one.
+**What each preset shows:** one long page in two parts. First the **homepage** (header with search and cart, USP bar, hero, category entry points, a product rail or grid with real-looking cards and prices, proof, footer). Then, after a `<div class="ngd-part" data-part="Product page"></div>` divider (the screenshot script captures each part), the **product page** (gallery, buy box with variant picker, price, delivery and returns reassurance, details accordion, reviews summary). Add the open cart drawer if the direction has a distinctive one. Both parts use the full width (no centred container), and the product page has no breadcrumb trail (`references/core/design-language.md`, sections 5 and 7).
 
 ### Build notes
 - **Commerce module first:** `app/lib/commerce.server.ts` wraps the chosen provider. Pages use its typed functions, never the provider SDK directly.
 - **Shared commerce components:** `ProductCard`, `Price` (handles currency, VAT label, sale plus prior price), `VariantPicker` (radio groups), `AddToCart` (fetcher with an optimistic count), `CartDrawer`, `Rating`, `UspBar`. Each has its own `.module.css`.
 - **Routes:** home, `/collections/:handle` (or localized equivalents), `/products/:handle`, `/cart`, `/search` (noindex), `/account/*` (ngd-panel patterns, noindex), withdrawal page, policy pages, `/feeds/google.xml`, webhooks.
 - **Rendering:** prerender small, stable catalogues; otherwise SSR with Workers Cache and tag purging on product-update webhooks (`references/commerce.md`, section 2). Cart, checkout and account are always `private, no-store` and `noindex`.
-- **Structured data:** `Product`/`ProductGroup` with offers on every product page, `BreadcrumbList`, and `Organization` with return and shipping policies. Validate.
+- **Structured data:** `Product`/`ProductGroup` with offers on every product page and `Organization` with return and shipping policies. Validate.
 - **Images:** consistent aspect ratio, variant images, accurate `sizes`, only the first row eager, a card-to-product view transition.
 - **Test mode end to end:** add to cart, checkout (success, failure, cancel), webhook records the order, confirmation email.
 

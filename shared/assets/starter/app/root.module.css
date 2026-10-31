@@ -2,9 +2,8 @@
   display: grid;
   gap: var(--space-4);
   align-content: center;
+  justify-items: start;
   min-height: 80dvh;
-  max-width: var(--container-prose);
-  margin-inline: auto;
   padding: var(--section-y) var(--gutter);
 }
 
@@ -15,10 +14,12 @@
 }
 
 .title {
-  font-size: var(--display-md);
+  max-width: 16ch;
+  font-size: var(--display-lg);
 }
 
 .detail {
+  max-width: 45ch;
   color: var(--color-text-muted);
 }
 
@@ -31,6 +32,7 @@
 }
 
 .stack {
+  justify-self: stretch;
   overflow-x: auto;
   padding: var(--space-4);
   border-radius: var(--radius-sm);

@@ -12,8 +12,6 @@
   align-items: center;
   gap: var(--space-6);
   height: var(--header-h);
-  max-width: var(--container-wide);
-  margin-inline: auto;
   padding-inline: var(--gutter);
 }
 

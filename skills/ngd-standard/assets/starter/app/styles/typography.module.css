@@ -38,7 +38,7 @@
 }
 
 .prose {
-  max-width: 65ch;
+  max-width: var(--measure);
   color: var(--color-text);
 
   & > * + * {

@@ -22,8 +22,10 @@
  *   --wait <ms>        extra wait after load (default: 600)
  *
  * Needs Playwright with Chromium. If it is missing:  npm i -D playwright && npx playwright install chromium
- * Exit code 1 on runtime errors, failed loads, horizontal overflow and (presets) problems in the file itself,
- * so it doubles as a smoke test. It can't judge design: look at the screenshots.
+ * Exit code 1 on runtime errors, failed loads, horizontal overflow, (presets) problems in the file itself, and
+ * website layout problems: sections boxed in a centred column at desktop width, breadcrumb trails, and (presets)
+ * more than one copy-beside-image split hero. Layout checks skip noindex pages and app-shell (panel) presets.
+ * It doubles as a smoke test, but it can't judge design: look at the screenshots.
  */
 import { mkdirSync } from 'node:fs';
 import { resolve, basename, dirname, join } from 'node:path';
@@ -127,6 +129,104 @@ function frameOverflow() {
   return found.map((f) => f.text);
 }
 
+// Website layout checks (design-language.md sections 5 and 7), which screenshots make easy to miss: sections boxed
+// in a centred column, a hero with the copy beside an image, a breadcrumb trail. Runs in the page, so it is self-contained.
+function websiteLayout({ selector, skipAppShell }) {
+  const root = selector ? document.querySelector(selector) : document.body;
+  if (!root || (skipAppShell && root.querySelector('aside nav, [class*="sidebar" i]'))) return null; // a panel shell
+  const frame = root.getBoundingClientRect();
+  const W = frame.width;
+  const box = (el, keepAbsolute = false) => {
+    const r = el.getBoundingClientRect();
+    if (r.width <= 1 || r.height <= 1) return null;
+    if (r.right <= frame.left || r.left >= frame.right) return null; // parked off-screen (honeypot fields, skip links)
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || (!keepAbsolute && (cs.position === 'absolute' || cs.position === 'fixed'))) return null;
+    return r;
+  };
+  const main = root.querySelector('main');
+  let sections = main ? [...main.children] : [...root.children];
+  while (sections.length === 1 && sections[0].children.length && !sections[0].matches('section, article, form')) sections = [...sections[0].children];
+  const outsideMain = (el) => !main || !main.contains(el);
+  const header = [...root.querySelectorAll('header')].find(outsideMain);
+  const footer = [...root.querySelectorAll('footer')].reverse().find(outsideMain);
+  const blocks = [header, ...sections, footer].filter(Boolean);
+  const result = { boxed: null, splitHero: false, crumbs: null };
+
+  // Boxed: at least three blocks, and half of them, have content inset well past the gutter on both sides, symmetrically
+  if (W >= 1200) {
+    const leaves = 'h1,h2,h3,h4,h5,h6,p,li,a,button,img,video,svg,input,select,textarea,blockquote,figure,table,.ph';
+    let measured = 0;
+    const insets = [];
+    for (const b of blocks) {
+      let l = Infinity;
+      let r = -Infinity;
+      for (const el of b.querySelectorAll(leaves)) {
+        const rect = box(el);
+        if (!rect) continue;
+        l = Math.min(l, rect.left - frame.left);
+        r = Math.max(r, rect.right - frame.left);
+      }
+      if (!Number.isFinite(l)) continue;
+      measured++;
+      if (l > W * 0.075 && W - r > W * 0.075 && Math.abs(l - (W - r)) <= W * 0.05) insets.push(l);
+    }
+    if (insets.length >= 3 && insets.length >= measured / 2) {
+      const band = Math.round(insets.sort((a, b) => a - b)[insets.length >> 1]);
+      result.boxed = `${insets.length} of ${measured} sections sit in a centred column with empty bands of about ${band}px on both sides of the ${Math.round(W)}px width`;
+    }
+  }
+
+  // Split hero: the largest visual in the h1's block sits beside the headline, at the same height
+  const h1 = [...root.querySelectorAll('h1')].find((el) => box(el, true));
+  if (h1 && W >= 900) {
+    const hb = h1.getBoundingClientRect();
+    const hero = blocks.find((b) => b.contains(h1)) ?? h1.parentElement;
+    let visual = null;
+    for (const el of hero.querySelectorAll('img, video, canvas, iframe, svg, .ph')) {
+      const r = box(el, true);
+      if (r && r.width >= W * 0.25 && r.height >= 160 && (!visual || r.width * r.height > visual.width * visual.height)) visual = r;
+    }
+    if (visual) {
+      const beside = visual.left >= hb.right - 8 || visual.right <= hb.left + 8;
+      result.splitHero = beside && visual.top < hb.bottom && visual.bottom > hb.top;
+    }
+  }
+
+  // Breadcrumbs: a labelled trail, or an unlabelled run of links separated by / › » → just before a page's h1
+  const named = /crumb(?!l)|kruimelpad|fil d.ariane|brotkr|migas de pan|briciole/i;
+  const clean = (el) => (el.innerText || el.textContent).replace(/\s+/g, ' ').trim().slice(0, 60);
+  for (const el of root.querySelectorAll('[aria-label], [class], [itemtype]')) {
+    const label = `${el.getAttribute('aria-label') ?? ''} ${typeof el.className === 'string' ? el.className : ''} ${el.getAttribute('itemtype') ?? ''}`;
+    if (named.test(label) && box(el, true)) {
+      result.crumbs = clean(el);
+      break;
+    }
+  }
+  const sep = /[/›»→]/;
+  for (const h of root.querySelectorAll('h1')) {
+    if (result.crumbs) break;
+    if (!box(h, true)) continue;
+    const i = blocks.findIndex((b) => b.contains(h));
+    const scope = i === -1 ? [h.parentElement] : [blocks[i - 1], blocks[i]].filter((b) => b && b !== header);
+    for (const list of scope.flatMap((b) => [...b.querySelectorAll('nav, ol, ul')])) {
+      if (!(list.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING) || !box(list, true)) continue;
+      const links = list.querySelectorAll('a').length;
+      const text = list.textContent.replace(/\s+/g, ' ').trim();
+      if (!links || links > 5 || text.length > 140) continue;
+      const items = list.matches('ol, ul') ? [...list.children] : [];
+      const pseudo =
+        items.length >= 2 &&
+        items.some((li, k) => (k > 0 && sep.test(getComputedStyle(li, '::before').content)) || (k < items.length - 1 && sep.test(getComputedStyle(li, '::after').content)));
+      if (pseudo || /\S\s+\/\s+\S|\S\s*[›»→]\s*\S/.test(text)) {
+        result.crumbs = clean(list);
+        break;
+      }
+    }
+  }
+  return result;
+}
+
 async function capturePresets(browser, o) {
   const url = toUrl(o.inputs[0]);
   const files = [];
@@ -142,6 +242,7 @@ async function capturePresets(browser, o) {
   if (!presets.length) throw new Error('No .ngd-preset sections found. Build the file with build-presets.mjs, or fill the presets shell.');
   errors.push(...(await page.evaluate(presetFileIssues)));
   const suffix = o.theme === 'dark' ? '-dark' : '';
+  const splitHeroes = [];
   for (const p of presets) {
     if (!p.themes.includes(o.theme)) continue; // a light-only preset has no dark variant to capture
     for (const view of o.views) {
@@ -156,6 +257,12 @@ async function capturePresets(browser, o) {
         continue;
       }
       for (const issue of await page.evaluate(frameOverflow)) errors.push(`preset ${p.index} (${view}): ${issue}`);
+      if (view === 'desktop' && o.layoutChecks) {
+        const layout = await page.evaluate(websiteLayout, { selector: '.ngd-preset.is-active .ngd-frame', skipAppShell: true });
+        if (layout?.boxed) errors.push(`preset ${p.index}: ${layout.boxed}; let sections use the full width (design-language.md section 5)`);
+        if (layout?.crumbs) errors.push(`preset ${p.index}: breadcrumb trail ("${layout.crumbs}"); website pages show none (design-language.md section 7)`);
+        if (layout?.splitHero) splitHeroes.push(p.index);
+      }
       // One capture per part: the top of the preset, then each .ngd-part divider (a product page, a detail screen).
       const parts = await page.$$eval('.ngd-preset.is-active .ngd-part', (els) =>
         els.map((el) => ({ label: el.dataset.part || 'part', y: el.getBoundingClientRect().top + window.scrollY })),
@@ -172,6 +279,10 @@ async function capturePresets(browser, o) {
         files.push({ preset: `${p.index} ${p.name}${part.label ? ` / ${part.label}` : ''}`, view, file, height: Math.round(box.height) });
       }
     }
+  }
+  if (splitHeroes.length > 1) {
+    const list = `${splitHeroes.slice(0, -1).join(', ')} and ${splitHeroes.at(-1)}`;
+    errors.push(`presets ${list} put the hero copy beside an image; keep at most one split hero per round (design-language.md section 7)`);
   }
   await page.close();
   return { files, errors };
@@ -203,6 +314,14 @@ async function capturePages(browser, o) {
       await page.screenshot({ path: file, fullPage: true, clip: o.full ? undefined : { x: 0, y: 0, width, height: Math.min(height, viewportHeight * o.screens) } });
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       if (overflow > 1) errors.push(`${target} @${width}: horizontal overflow of ${overflow}px`);
+      // Website layout checks only on pages meant to be indexed: panels, cart and checkout carry a robots noindex meta tag.
+      // (Not the X-Robots-Tag header: the starter's Worker adds it to every response on non-production hosts, localhost too.)
+      const robots = await page.evaluate(() => document.querySelector('meta[name="robots"]')?.getAttribute('content') ?? '');
+      if (o.layoutChecks && res && !/noindex/i.test(robots)) {
+        const layout = await page.evaluate(websiteLayout, { selector: null, skipAppShell: false });
+        if (layout?.boxed) errors.push(`${target} @${width}: ${layout.boxed}; let sections use the full width (design-language.md section 5)`);
+        if (layout?.crumbs) errors.push(`${target}: breadcrumb trail ("${layout.crumbs}"); website pages show none (design-language.md section 7)`);
+      }
       files.push({ page: target, width, file });
       await page.close();
     }
@@ -218,10 +337,12 @@ async function main() {
   try {
     const files = [];
     const errors = [];
-    for (const theme of o.theme === 'both' ? ['light', 'dark'] : [o.theme]) {
-      const run = o.presets ? await capturePresets(browser, { ...o, theme }) : await capturePages(browser, { ...o, theme });
-      files.push(...run.files);
-      errors.push(...run.errors);
+    const themes = o.theme === 'both' ? ['light', 'dark'] : [o.theme];
+    for (const theme of themes) {
+      const run = { ...o, theme, layoutChecks: theme === themes[0] }; // layout doesn't change with the theme: check once
+      const { files: shot, errors: found } = o.presets ? await capturePresets(browser, run) : await capturePages(browser, run);
+      files.push(...shot);
+      errors.push(...found);
     }
     for (const f of files) console.log(`saved ${f.file}${f.preset ? `  (${f.preset}, ${f.view}, frame ${f.height}px tall)` : ''}`);
     const problems = [...new Set(errors)];
@@ -230,7 +351,7 @@ async function main() {
       for (const e of problems) console.log(`  - ${e}`);
       process.exitCode = 1;
     } else {
-      console.log(`\nNo problems found in ${basename(o.inputs[0])}${o.presets ? ' (runtime errors, file checks, overflow inside the frame)' : ' (runtime errors, HTTP status, horizontal overflow)'}. Now look at the screenshots.`);
+      console.log(`\nNo problems found in ${basename(o.inputs[0])}${o.presets ? ' (runtime errors, file checks, overflow inside the frame, website layout)' : ' (runtime errors, HTTP status, horizontal overflow, website layout)'}. Now look at the screenshots.`);
     }
   } finally {
     await browser.close();
