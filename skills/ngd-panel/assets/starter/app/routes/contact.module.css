@@ -1,8 +1,6 @@
 .page {
   display: grid;
   gap: var(--space-8);
-  max-width: var(--container);
-  margin-inline: auto;
   padding: var(--space-9) var(--gutter) var(--section-y);
 }
 

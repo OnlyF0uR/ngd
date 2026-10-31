@@ -104,8 +104,8 @@ Before the sitemap and presets, read the matching playbook in `references/site-p
 
 ### Preset archetypes for standard sites
 Pick five that suit the brief and differ strongly (see `references/core/presets.md` for the axes), and adapt them; never use them as fixed templates:
-1. **Split Authority:** headline and CTA left, product or photo right, logo band, alternating benefit rows, precise shapes. Suits professional services and SaaS.
-2. **Statement:** an oversized centred headline (grotesk or expressive serif), two CTAs, then sections in their own color worlds. Suits bold consumer brands and launches.
+1. **Product Stage:** headline and CTA set wide across the top, then the product, the work or the place as a large visual directly below, running edge to edge; logo band, editorial benefit rows, precise shapes. Suits SaaS, professional services and agencies.
+2. **Statement:** an oversized headline across the full width (grotesk or expressive serif), two CTAs, then sections in their own color worlds. Suits bold consumer brands and launches.
 3. **Immersive Editorial:** full-bleed photo or video hero with overlaid headline, a sticky split-scroll of numbered benefits, thin rules, square shapes. Suits wellness, hospitality and premium products.
 4. **Bento Proof:** compact hero, then a bento grid of capability tiles with UI fragments, often dark. Suits tech, agencies and B2B.
 5. **Human and Warm:** brand-color field hero with a collage of real people, soft shapes, testimonials early. Suits community, health, education and non-profits.
@@ -113,7 +113,7 @@ Pick five that suit the brief and differ strongly (see `references/core/presets.
 7. **Editorial Story:** magazine layout, serif display, long-form narrative, pull quotes. Suits personal brands, consultancies and craft businesses.
 8. **Local Clarity:** trust bar (rating, phone, hours), service cards, service-area map and a sticky mobile call/WhatsApp bar. Suits trades and clinics.
 
-**What each preset shows:** the homepage with header and mobile navigation, the hero, the proof band, three to five core sections in the planned order, the first two steps of the conversational form, the final CTA and the footer. Use real draft copy from the brief and keyword plan.
+**What each preset shows:** the homepage with header and mobile navigation, the hero, the proof band, three to five core sections in the planned order, the first two steps of the conversational form, the final CTA and the footer. Use real draft copy from the brief and keyword plan. Every preset uses the full width (no centred container), at most one has a copy-beside-image split hero, and none shows a breadcrumb trail (`references/core/design-language.md`, sections 5 and 7).
 
 ### Build notes
 - **Sitemap and templates:** build every page in `design/seo-plan.md` from the templates in `references/page-anatomy.md`. Prerender everything except routes with an action (contact) and pages with per-request data.

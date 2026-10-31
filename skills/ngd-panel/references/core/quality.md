@@ -25,7 +25,7 @@ node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact /pricing
 node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact --widths 390,1440 --theme dark   # if dark mode exists
 ```
 
-`<skill-dir>` is this skill's directory; run the commands from the project folder. The screenshot script uses reduced motion by default (so scroll reveals can't hide sections) and fails on runtime errors, HTTP errors and horizontal overflow; treat each as a bug. If Playwright is missing, install it in the project as a dev dependency or skip visual checks and say so.
+`<skill-dir>` is this skill's directory; run the commands from the project folder. The screenshot script uses reduced motion by default (so scroll reveals can't hide sections) and fails on runtime errors, HTTP errors, horizontal overflow and, on indexable pages, website layout problems (sections boxed in a centred column at desktop width, breadcrumb trails); treat each as a bug. If Playwright is missing, install it in the project as a dev dependency or skip visual checks and say so.
 
 **Lighthouse** (mobile, for the homepage and one page of each template):
 
@@ -40,6 +40,7 @@ Two caveats: `vite preview` serves uncompressed files (performance looks worse t
 Open the screenshots next to the chosen preset and check honestly:
 - Same typography (families, weights, scale, tracking), spacing rhythm, shape language, color application and signature details.
 - Mobile layout as designed: navigation, hero, tap targets, no cramped or overflowing elements at 390px (and readable at 360px).
+- Full width at 1440px (and at 1920px if you can: add it with `--widths`): sections reach the gutters with no empty bands left and right, header, content and footer edges line up, and no page shows a breadcrumb trail.
 - Dark mode (if offered) looks designed, not inverted.
 - Images sharp, correctly cropped, consistent in style; no placeholders left (unless agreed and listed in `design/image-slots.md`).
 - Empty, loading, error and success states look intentional.
@@ -60,7 +61,7 @@ If something deviates on purpose (performance, accessibility, content length), n
 - `sitemap.xml` lists exactly the canonical, indexable pages; `robots.txt` on production allows crawling and references the sitemap; non-production hosts are disallowed.
 - Real 404 status for unknown URLs; 301s for moved URLs; one trailing-slash policy; no redirect chains.
 - `noindex` on thank-you pages, internal search, panels, cart and checkout.
-- Internal links are real `<a href>` links; breadcrumbs on deep pages.
+- Internal links are real `<a href>` links; deep pages are linked from their hub and link back to it in the content. No breadcrumb trail and no `BreadcrumbList` on website pages.
 - The keyword plan is implemented: each page's primary cluster appears naturally in title, H1, intro and a subheading.
 - Before launch: Cloudflare bot / AI-crawler settings don't block search crawlers (seo.md section 9).
 

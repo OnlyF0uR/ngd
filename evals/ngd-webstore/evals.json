@@ -13,7 +13,9 @@
         "Each of the five presets shows a homepage part and, after an ngd-part divider, a product page part (gallery, variant picker, price incl. VAT, add to cart, delivery and returns reassurance)",
         "Prices are shown including VAT and the free-shipping threshold is visible",
         "The plan mentions the EU withdrawal function and the 30-day prior price for discounts",
-        "Subscriptions are planned with the payment methods that can renew automatically, and the food information shown before purchase is mentioned"
+        "Subscriptions are planned with the payment methods that can renew automatically, and the food information shown before purchase is mentioned",
+        "The product page part has no breadcrumb trail; the category is linked from the details or a rail instead",
+        "Homepage and product grids use the full frame width (no centred max-width column)"
       ]
     },
     {

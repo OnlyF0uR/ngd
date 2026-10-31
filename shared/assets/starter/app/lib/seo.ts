@@ -98,16 +98,3 @@ export function localBusinessJsonLd(type = 'LocalBusiness', extra: JsonLd = {}):
 export function websiteJsonLd(): JsonLd {
   return { '@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: site.url };
 }
-
-export function breadcrumbJsonLd(items: { name: string; path: string }[]): JsonLd {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items.map((item, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      name: item.name,
-      item: absoluteUrl(item.path),
-    })),
-  };
-}

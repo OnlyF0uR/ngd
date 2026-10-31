@@ -1,9 +1,19 @@
+/*
+ * Sections span the full width: the gutter sets the edges and a 12-column grid places the content
+ * (references/core/design-language.md, section 5). Line length is limited on the text itself, never by
+ * boxing a section into a centred column.
+ */
+
+/* Type-led hero: the headline runs wide, the supporting row spreads across the grid */
 .hero {
   display: grid;
-  gap: var(--space-5);
-  max-width: var(--container);
-  margin-inline: auto;
+  gap: var(--space-7);
   padding: var(--space-9) var(--gutter) var(--section-y);
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-4);
 }
 
 .eyebrow {
@@ -12,11 +22,22 @@
 
 .title {
   composes: display from '~/styles/typography.module.css';
-  max-width: 14ch;
+  max-width: 18ch;
+}
+
+.heroFoot {
+  display: grid;
+  gap: var(--space-5);
+  align-items: end;
 }
 
 .lead {
   composes: lead from '~/styles/typography.module.css';
+}
+
+.heroActions {
+  display: grid;
+  gap: var(--space-3);
 }
 
 .actions {
@@ -30,11 +51,10 @@
   color: var(--color-text-muted);
 }
 
+/* Numbered editorial list across the full width (not three identical cards) */
 .section {
   display: grid;
   gap: var(--space-7);
-  max-width: var(--container);
-  margin-inline: auto;
   padding: var(--section-y) var(--gutter);
 }
 
@@ -43,40 +63,54 @@
   max-width: 20ch;
 }
 
-.grid {
+.list {
   display: grid;
-  gap: var(--space-4);
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-7) var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  counter-reset: item;
 }
 
-.card {
-  height: 100%;
-  padding: var(--space-6);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+.item {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border-strong);
 
-  & h3 {
-    margin-bottom: var(--space-2);
+  &::before {
+    counter-increment: item;
+    content: counter(item, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-accent-text);
   }
   & p {
+    max-width: 45ch;
     color: var(--color-text-muted);
   }
 }
 
+/* Final CTA: a full-bleed dark band, its content on the same gutter as everything else */
 .cta {
+  display: grid;
+  gap: var(--space-7);
   padding: var(--section-y) var(--gutter);
 }
 
-.ctaInner {
-  display: grid;
-  gap: var(--space-7);
-  max-width: var(--container);
-  margin-inline: auto;
-}
-
 @media (min-width: 960px) {
-  .ctaInner {
+  .heroFoot {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--space-5);
+  }
+  .lead {
+    grid-column: 1 / span 6;
+  }
+  .heroActions {
+    grid-column: 8 / -1;
+    justify-self: end;
+    justify-items: end;
+  }
+  .cta {
     grid-template-columns: 5fr 7fr;
     align-items: start;
   }

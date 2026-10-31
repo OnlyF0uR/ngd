@@ -70,7 +70,7 @@ Use fluid sizes with `clamp()` so type scales smoothly between 390px and 1440px.
 
 - **Display:** weight 500–600 for refined, 700–800 for bold; line-height 0.9–1.05; letter-spacing −0.02em to −0.045em (bigger means tighter). Serif displays need less negative tracking (−0.01 to −0.02em).
 - **Headings (h2–h4):** line-height 1.1–1.25, tracking −0.01 to −0.025em.
-- **Body:** 16–18px (marketing pages lean 17–18px), line-height 1.5–1.65, measure 55–72 characters (`max-width: 65ch`). Grotesks benefit from −0.005 to −0.011em tracking.
+- **Body:** 16–18px (marketing pages lean 17–18px), line-height 1.5–1.65, measure 55–72 characters (`max-width: var(--measure)`, 65ch, on the paragraph itself, not on its section). Grotesks benefit from −0.005 to −0.011em tracking.
 - **Labels and eyebrows:** 12–13px, uppercase with +0.04 to +0.08em tracking, or a mono face; weight 500–600.
 - **Numbers:** `font-variant-numeric: tabular-nums` for prices, stats, tables and anything that updates.
 - `text-wrap: balance` on headings, `text-wrap: pretty` on paragraphs.
@@ -102,16 +102,21 @@ All colors come from `app/styles/tokens.css`, generated from the theme color by 
 
 - **Spacing scale (px):** 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 160. Internal component spacing comes from the small end, section spacing from the large end.
 - **Section padding:** `clamp(64px, 10vw, 144px)` vertically; give the hero more, the sections right after it slightly less, so the page has tempo.
-- **Containers:** about 1200px for content pages, 1320–1440px for catalogues and bento grids, about 720px for long-form text. Side gutters `clamp(20px, 5vw, 64px)`.
+- **Full width, never a centred box.** Every section spans the viewport: its background, imagery and grid run edge to edge, and its content reaches the side gutters (`--gutter`, `clamp(20px, 4vw, 80px)`). Don't wrap sections in a centred container (`max-width: 1200px; margin: 0 auto`, `width: min(100%, 1200px)`, a `<Container>` component): at 1440px it leaves empty bands left and right, at 1920px almost half the screen, and it is the clearest sign of a template. Only on ultra-wide screens (above about 1920px) does the gutter grow, so lines stay within reach; the starter's `--gutter` token does that. Panels follow `panel-ux.md` instead.
+- **Limit the text, not the section.** Line length is set on the text elements themselves: display headlines 12–20ch, leads about 40ch, paragraphs `--measure` (about 65ch). The rest of the width belongs to the layout: a visual, a second column, a grid that fills it, or white space placed on purpose on one side.
+- **Use the width.** Place content on a 12-column grid across the full content width. Let a headline run over 8–12 columns, spread a supporting row (lead, CTA, proof) across the grid instead of stacking it in a narrow column, let images and colour bands bleed to the viewport edge (`margin-inline: calc(var(--gutter) * -1)`), and let card and product grids add columns as the screen grows. Long-form text (articles, legal pages) keeps its 65ch column, placed on the grid with a sticky contents list or aside beside it, not as a narrow strip in the middle of the screen.
+- **Edges line up.** Header, sections and footer use the same gutter, so the logo, the headlines and the footer start on one vertical line.
 - **Grids:** a 12-column grid on desktop, 4 on mobile, or intrinsic grids (`repeat(auto-fit, minmax(280px, 1fr))`). Asymmetric splits (5/7, 4/8) feel more designed than 6/6.
 - **Section patterns that read well:**
-  - *Split:* headline and copy on one side, visual on the other; alternate sides down the page only when it helps the story.
   - *Bento:* a grid of differently sized tiles, each proving one capability with a small visual or UI fragment.
   - *Sticky split-scroll:* headline and CTA stay pinned in one column while numbered points or images scroll past in the other.
   - *Editorial:* eyebrow with a thin rule, large heading, two-column body, numbered items (01–06).
+  - *Full-bleed band:* a photo or colour field from edge to edge with a short statement or the CTA on it.
   - *Proof band:* logos, ratings, a single striking number or quote, directly under the hero.
+  - *Split:* headline and copy beside a visual. Fine for one section; alternating it down the page (zig-zag rows) is a template tell.
 - **Alternate section moods** (light, subtle, dark, brand) to pace a long page, but keep a clear system: two or three moods, not seven.
 - **Breakpoints:** design mobile-first. Use container queries for components and a few media queries for page structure (around 640, 960, 1280px or where the content breaks).
+- **Check at 1440 and 1920px:** every section's content reaches (or bleeds past) the gutters, or leaves space on one side by design. Equal empty bands on both sides mean the page is boxed.
 
 ## 6. Shape, depth and surfaces
 
@@ -136,7 +141,18 @@ Pick one **shape language** per project and apply it everywhere (buttons, cards,
 
 ## 7. Components: the details that signal quality
 
-**Header.** 64–76px tall on desktop, 56–64px on mobile. Logo left, at most six navigation items, primary CTA right. Sticky; it becomes opaque (or glass) once the page scrolls, without shifting layout. Local businesses can add a phone or WhatsApp icon button. On mobile: a 44px menu button opening a full-height sheet with large links, the CTA and contact options.
+**Header.** 64–76px tall on desktop, 56–64px on mobile. Logo left, at most six navigation items, primary CTA right. Sticky; it becomes opaque (or glass) once the page scrolls, without shifting layout. Local businesses can add a phone or WhatsApp icon button. On mobile: a 44px menu button opening a full-height sheet with large links, the CTA and contact options. The active section is marked in the navigation (`aria-current`); that, not a breadcrumb trail, tells visitors where they are.
+
+**Hero.** It sets the character of the whole site, so don't default to the most common hero on the web: copy in the left half, a photo in the right half. Stronger compositions:
+- *Type-led statement:* the headline at display size across most of the width, with a row underneath that spreads the lead, CTA and proof across the grid.
+- *Full-bleed image or video* with the copy anchored bottom-left on a scrim.
+- *Stacked stage:* headline and CTA set wide on top, then a large photo, product view or collage directly below, running edge to edge or into the next section.
+- *Layered:* the headline overlapping the edge of a large image, or a giant wordmark with imagery between the letters.
+- *Form-first or search-first:* the first question of the lead form, or a search field, as the hero's main element.
+
+A side-by-side split is fine when the visual has to sit next to the words (a product UI the copy explains), but then break the box: let the visual bleed off the viewport edge, overlap the next section, or take clearly more than half the width. In a round of presets, at most one uses a split hero.
+
+**No breadcrumb trails.** Website pages (standard sites and shops) never show a "Home / About" or "Home › Shoes › Trail" trail above the headline: it reads as template chrome and repeats what the navigation already says. Orientation comes from the header's active item, the page's eyebrow, and links in the content (a service page links back to the services overview and to related services; a product links to its category). Panels may use breadcrumbs for deep hierarchies (`panel-ux.md`).
 
 **Buttons.** Heights 40 / 48 / 56px (small / default / hero); 16–24px horizontal padding; weight 600. Hover: slightly deeper accent plus a 2–4px arrow nudge. Press: `transform: scale(0.98)`. Focus: a 2px ring offset by 2px in `--color-focus`. Loading state keeps the button width and shows a small spinner. The label is a verb plus value ("Get my quote"), never "Submit".
 
@@ -193,7 +209,7 @@ Small, consistent touches make a site memorable. Choose what suits the personali
 ## 11. Anti-patterns
 
 Avoid these. They make sites look generic, slow or untrustworthy:
-- **Template tells:** everything centred; three identical cards with emoji or stock icons; purple-to-blue gradients without a reason; generic stock photos (handshakes, people pointing at screens); "Welcome to our website" headlines.
+- **Template tells:** every section boxed in a centred ~1200px column with empty bands on wide screens; a hero with the copy on the left and a photo on the right by default; feature rows that zig-zag text and image down the page; breadcrumb trails ("Home / About") above headlines; everything centred; three identical cards with emoji or stock icons; purple-to-blue gradients without a reason; generic stock photos (handshakes, people pointing at screens); "Welcome to our website" headlines.
 - **Speed and SEO killers:** preloaders and splash screens; hero content hidden until JavaScript or an animation runs; scroll-jacking and smooth-scroll libraries; heavy parallax; autoplaying hero sliders; huge background videos without a poster; chat widgets and third-party scripts loading on first paint.
 - **Hostile patterns:** popups on load or on exit intent (they also hurt rankings on mobile); cookie walls that block content; fake urgency or invented reviews; pre-ticked consent boxes.
 - **Readability failures:** low-contrast grey text; body text under 16px; lines wider than 80 characters; text over busy photos without a scrim; all-caps paragraphs.

@@ -33,8 +33,8 @@ Not every page needs every step: a strong local-service page might merge 3 and 5
 Each section: its job, layout variants, and what to avoid. A section used on more than one page becomes a component in `app/components/sections/` with props for its content, so pages compose them; a one-off section stays with its route (in the route file, or in the route's folder: `app/routes/about/Story.tsx` with its own `.module.css`) until a second page needs it.
 
 **Hero.** Job: the five-second answer and the first click.
-- Variants: split (copy + visual); centred statement (type-led); full-bleed photo/video with overlaid copy (needs a scrim); product-UI hero; form-first (first question of the lead form with chips); search-first (catalogues, real estate).
-- Avoid: carousels/sliders, vague slogans, three competing CTAs, hero content that waits for animation.
+- Variants (design-language.md section 7): type-led statement across the width; full-bleed photo/video with the copy on a scrim; stacked stage (headline wide on top, a large visual below); layered (headline over the edge of an image); product-UI hero; form-first (first question of the lead form with chips); search-first (catalogues, real estate); split copy + visual, only when the visual must sit beside the words, and then breaking the box.
+- Avoid: the default half-text, half-photo split; carousels/sliders, vague slogans, three competing CTAs, hero content that waits for animation.
 
 **Proof band.** Job: borrow trust immediately after the promise.
 - Variants: logo wall (monochrome, 5–7 logos), rating strip ("4.9 ★ on Google · 312 reviews"), single big number, press quotes.
@@ -49,8 +49,8 @@ Each section: its job, layout variants, and what to avoid. A section used on mor
 - Avoid: more than 4 steps; internal process jargon.
 
 **Benefits / services.** Job: show the value, and route visitors to the right service page.
-- Variants: feature rows alternating copy and visual; bento grid; service cards linking to service pages; tabbed use cases.
-- Avoid: identical icon cards with generic copy; feature names without outcomes.
+- Variants: bento grid; numbered editorial list across the grid; service cards linking to service pages; tabbed use cases; a short run of feature rows (copy beside a visual).
+- Avoid: identical icon cards with generic copy; feature names without outcomes; zig-zag rows (text and image swapping sides) down the whole page.
 
 **Social proof.** Job: let customers persuade.
 - Variants: testimonial grid with photos; one large featured quote; case study cards with a metric; video testimonials (poster frame, click to play); review widget output rendered server-side (not a slow third-party script).
@@ -98,6 +98,7 @@ Each section: its job, layout variants, and what to avoid. A section used on mor
 
 - **Header:** logo left, 4–6 items max, primary CTA right. For local businesses, a phone or WhatsApp icon. Mega menus only for genuinely large sites.
 - **Mobile navigation:** full-height sheet with large links, the CTA and contact options; the header stays slim.
+- **No breadcrumb trails** ("Home / Services / Sports massage") on any page. The header marks the active section (`aria-current`), the eyebrow names the page's context, and the content links back to its hub ("All services") and sideways to related pages.
 - **Footer:** final CTA band above it; then navigation columns, full contact details (name, address, phone, email, hours), socials, legal links, company registration details where required.
 - **Campaign landing pages:** strip navigation down to the logo (and maybe a phone number).
 
@@ -117,3 +118,4 @@ Each section: its job, layout variants, and what to avoid. A section used on mor
 - [ ] The page's keyword cluster is covered naturally (seo-plan.md).
 - [ ] Real content, real images, real numbers.
 - [ ] Works and looks designed at 390px and 1440px.
+- [ ] Sections use the full width at desktop sizes (no centred container column), and there is no breadcrumb trail.
