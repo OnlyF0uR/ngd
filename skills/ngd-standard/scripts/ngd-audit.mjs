@@ -190,6 +190,32 @@ const crumbs = [...sourceFiles, ...cssModules].filter(
 if (crumbs.length) fail('No visible breadcrumb trail on website pages', `${crumbs.join(', ')}: remove the trail; BreadcrumbList data can stay (seo.md section 3)`);
 else pass('No visible breadcrumb trail on website pages');
 
+// No pills above headings: an eyebrow (kicker, overline, pre-title) is plain text. A fill or a full outline turns it
+// into the capsule-above-the-headline template tell. A rule beside it (::before/::after, border-top/-bottom) is fine.
+// screenshot.mjs catches pills above headings whatever their class name.
+const eyebrowSelector = /eyebrow|kicker|overline|pre-?(?:title|heading|header)|super-?title/i;
+const capsule = (body) =>
+  /(?<![\w-])background(?:-color|-image)?\s*:\s*(?!\s*(?:none|transparent|inherit|initial|unset)\s*(?:;|$))[^;]+/.test(body) ||
+  /(?<![\w-])(?:border|outline)\s*:\s*(?!\s*(?:0|none)\s*(?:;|$))[^;]+/.test(body);
+const eyebrowPills = [];
+for (const f of cssModules.filter((m) => !appArea(m))) {
+  let css = stripComments(read(f));
+  const innermost = /([^{};]*)\{([^{}]*)\}/g;
+  while (innermost.test(css)) {
+    innermost.lastIndex = 0;
+    css = css.replace(innermost, (_, selector, body) => {
+      if (eyebrowSelector.test(selector) && !/::?(?:before|after)/.test(selector) && capsule(body)) eyebrowPills.push(`${f} ${selector.trim()}`);
+      return ';';
+    });
+  }
+}
+if (eyebrowPills.length) {
+  fail(
+    'No pills above headings (eyebrows are plain text)',
+    `${eyebrowPills.slice(0, 6).join(', ')}: drop the background and outline; keep the label as plain text or remove it (design-language.md section 7)`,
+  );
+} else pass('No pills above headings (eyebrows are plain text)');
+
 const lorem = grepFiles([...sourceFiles, ...cssModules], /lorem ipsum/i);
 if (lorem.length) fail('No lorem ipsum', lorem.join(', '));
 

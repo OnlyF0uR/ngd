@@ -23,8 +23,8 @@
  *
  * Needs Playwright with Chromium. If it is missing:  npm i -D playwright && npx playwright install chromium
  * Exit code 1 on runtime errors, failed loads, horizontal overflow, (presets) problems in the file itself, and
- * website layout problems: sections boxed in a centred column at desktop width, breadcrumb trails, and (presets)
- * more than one copy-beside-image split hero. Layout checks skip noindex pages and app-shell (panel) presets.
+ * website layout problems: sections boxed in a centred column at desktop width, breadcrumb trails, pills or chips
+ * above headings, and (presets) more than one copy-beside-image split hero. Layout checks skip noindex pages and app-shell (panel) presets.
  * It doubles as a smoke test, but it can't judge design: look at the screenshots.
  */
 import { mkdirSync } from 'node:fs';
@@ -130,7 +130,8 @@ function frameOverflow() {
 }
 
 // Website layout checks (design-language.md sections 5 and 7), which screenshots make easy to miss: sections boxed
-// in a centred column, a hero with the copy beside an image, a breadcrumb trail. Runs in the page, so it is self-contained.
+// in a centred column, a hero with the copy beside an image, a breadcrumb trail, a pill or chip above a heading.
+// Runs in the page, so it is self-contained.
 function websiteLayout({ selector, skipAppShell }) {
   const root = selector ? document.querySelector(selector) : document.body;
   if (!root || (skipAppShell && root.querySelector('aside nav, [class*="sidebar" i]'))) return null; // a panel shell
@@ -151,7 +152,7 @@ function websiteLayout({ selector, skipAppShell }) {
   const header = [...root.querySelectorAll('header')].find(outsideMain);
   const footer = [...root.querySelectorAll('footer')].reverse().find(outsideMain);
   const blocks = [header, ...sections, footer].filter(Boolean);
-  const result = { boxed: null, splitHero: false, crumbs: null };
+  const result = { boxed: null, splitHero: false, crumbs: null, pills: [] };
 
   // Boxed: at least three blocks, and half of them, have content inset well past the gutter on both sides, symmetrically
   if (W >= 1200) {
@@ -224,6 +225,41 @@ function websiteLayout({ selector, skipAppShell }) {
       }
     }
   }
+
+  // Pills above headings: a small filled or outlined label with words in it, just above an h1–h3 and in line with it
+  // ("✨ New: online booking", "Our services" in a capsule). Plain-text eyebrows, thin rules beside them, icon tiles,
+  // number badges, form chips, navigation and corner badges (absolutely positioned) don't count.
+  const alpha = (c) => {
+    const slash = /\/\s*([\d.]+)(%?)\s*\)$/.exec(c); // oklch(… / 0.5), rgb(… / 50%)
+    if (slash) return Number(slash[1]) / (slash[2] ? 100 : 1);
+    const parts = /^rgba\(([^)]*)\)$/.exec(c)?.[1].split(',');
+    return parts?.length === 4 ? Number(parts[3]) : c === 'transparent' ? 0 : 1;
+  };
+  const filled = (cs) =>
+    alpha(cs.backgroundColor) > 0.04 ||
+    cs.backgroundImage !== 'none' ||
+    ['Top', 'Right', 'Bottom', 'Left'].every((s) => parseFloat(cs[`border${s}Width`]) >= 1 && cs[`border${s}Style`] !== 'none' && alpha(cs[`border${s}Color`]) > 0.04);
+  const skip = 'nav, form, fieldset, [role="tablist"], [role="radiogroup"], [role="toolbar"], button, label, input, select, textarea';
+  const flagged = new Set();
+  for (const h of root.querySelectorAll('h1, h2, h3')) {
+    if (result.pills.length >= 3) break;
+    const hb = box(h, true);
+    if (!hb) continue;
+    const block = blocks.find((b) => b.contains(h));
+    if (block && block === header) continue;
+    const scope = block ?? h.closest('section, article') ?? h.parentElement;
+    for (const el of scope.querySelectorAll('*')) {
+      if (el.contains(h) || h.contains(el) || flagged.has(el) || el.closest(skip)) continue;
+      const r = box(el);
+      if (!r || r.height < 14 || r.height > 52 || r.width > Math.min(560, W * 0.6)) continue;
+      if (r.bottom > hb.top + 4 || hb.top - r.bottom > 72 || r.right < hb.left - 8 || r.left > hb.right + 8) continue;
+      const text = (el.innerText || '').replace(/\s+/g, ' ').trim();
+      if (text.length > 80 || !/\p{L}{2}/u.test(text) || !filled(getComputedStyle(el))) continue;
+      flagged.add(el);
+      result.pills.push(`"${text.slice(0, 40)}" above "${clean(h).slice(0, 40)}"`);
+      break;
+    }
+  }
   return result;
 }
 
@@ -261,6 +297,7 @@ async function capturePresets(browser, o) {
         const layout = await page.evaluate(websiteLayout, { selector: '.ngd-preset.is-active .ngd-frame', skipAppShell: true });
         if (layout?.boxed) errors.push(`preset ${p.index}: ${layout.boxed}; let sections use the full width (design-language.md section 5)`);
         if (layout?.crumbs) errors.push(`preset ${p.index}: breadcrumb trail ("${layout.crumbs}"); website pages show none (design-language.md section 7)`);
+        if (layout?.pills.length) errors.push(`preset ${p.index}: pill above a heading (${layout.pills.join('; ')}); use a plain-text eyebrow or none (design-language.md section 7)`);
         if (layout?.splitHero) splitHeroes.push(p.index);
       }
       // One capture per part: the top of the preset, then each .ngd-part divider (a product page, a detail screen).
@@ -321,6 +358,7 @@ async function capturePages(browser, o) {
         const layout = await page.evaluate(websiteLayout, { selector: null, skipAppShell: false });
         if (layout?.boxed) errors.push(`${target} @${width}: ${layout.boxed}; let sections use the full width (design-language.md section 5)`);
         if (layout?.crumbs) errors.push(`${target}: breadcrumb trail ("${layout.crumbs}"); website pages show none (design-language.md section 7)`);
+        if (layout?.pills.length) errors.push(`${target} @${width}: pill above a heading (${layout.pills.join('; ')}); use a plain-text eyebrow or none (design-language.md section 7)`);
       }
       files.push({ page: target, width, file });
       await page.close();

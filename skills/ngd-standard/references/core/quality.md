@@ -25,7 +25,7 @@ node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact /pricing
 node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact --widths 390,1440 --theme dark   # if dark mode exists
 ```
 
-`<skill-dir>` is this skill's directory; run the commands from the project folder. The screenshot script uses reduced motion by default (so scroll reveals can't hide sections) and fails on runtime errors, HTTP errors, horizontal overflow and, on indexable pages, website layout problems (sections boxed in a centred column at desktop width, breadcrumb trails); treat each as a bug. If Playwright is missing, install it in the project as a dev dependency or skip visual checks and say so.
+`<skill-dir>` is this skill's directory; run the commands from the project folder. The screenshot script uses reduced motion by default (so scroll reveals can't hide sections) and fails on runtime errors, HTTP errors, horizontal overflow and, on indexable pages, website layout problems (sections boxed in a centred column at desktop width, breadcrumb trails, pills or chips above headings); treat each as a bug. If Playwright is missing, install it in the project as a dev dependency or skip visual checks and say so.
 
 **Lighthouse** (mobile, for the homepage and one page of each template):
 
@@ -40,7 +40,7 @@ Two caveats: `vite preview` serves uncompressed files (performance looks worse t
 Open the screenshots next to the chosen preset and check honestly:
 - Same typography (families, weights, scale, tracking), spacing rhythm, shape language, color application and signature details.
 - Mobile layout as designed: navigation, hero, tap targets, no cramped or overflowing elements at 390px (and readable at 360px).
-- Full width at 1440px (and at 1920px if you can: add it with `--widths`): sections reach the gutters with no empty bands left and right, header, content and footer edges line up, and no page shows a breadcrumb trail.
+- Full width at 1440px (and at 1920px if you can: add it with `--widths`): sections reach the gutters with no empty bands left and right, header, content and footer edges line up, and no page shows a breadcrumb trail or a pill above a heading.
 - Dark mode (if offered) looks designed, not inverted.
 - Images sharp, correctly cropped, consistent in style; no placeholders left (unless agreed and listed in `design/image-slots.md`).
 - Empty, loading, error and success states look intentional.
