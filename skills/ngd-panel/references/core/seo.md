@@ -70,7 +70,7 @@ Two parts keep it readable: the map for decisions, the page blocks for implement
 - **URLs:** lowercase, hyphenated, short, descriptive, in the page language, no dates or IDs unless needed: `/services/sports-massage`, `/blog/runner-knee-exercises`. Pick one trailing-slash policy and redirect the other form.
 - **One URL per piece of content.** Parameters that don't change content (tracking, sort order) must not create indexable duplicates: the page's canonical always points to the clean URL, and section 5 says which variants are blocked or `noindex`.
 - **Navigation and footer links are real `<a href>` links** rendered on the server; no click-handler-only navigation.
-- **No breadcrumb trails.** Website pages show no "Home / Services / …" trail (design-language.md section 7). The hierarchy lives in the URLs, the navigation and the hub ↔ spoke links in the content. Structured data only describes what is visible, so there is no `BreadcrumbList` markup either; search results then show the page's URL path, one more reason to keep URLs short and readable.
+- **Breadcrumbs as data, not as a trail.** Pages deeper than one level get `BreadcrumbList` structured data, so search results show where the page sits. Website pages don't render a visible "Home / Services / …" trail above the headline (design-language.md section 7): visitors get the hierarchy from the navigation and the hub ↔ spoke links in the content.
 
 ### Filters, sorting and faceted navigation
 
@@ -127,12 +127,12 @@ Use JSON-LD in a `<script type="application/ld+json">`, rendered on the server, 
 |---|---|---|
 | Home | `Organization` (or `LocalBusiness` subtype), `WebSite` | name, url, logo, sameAs (social profiles), contactPoint; shop-wide return and shipping policies live on `Organization` |
 | Local business | `LocalBusiness` subtype (`Dentist`, `Restaurant`, `HomeAndConstructionBusiness`…) | address, geo, telephone, openingHoursSpecification, priceRange, areaServed |
-| Service page | `Service` (+ `provider`) | no rich result, but clarifies entities |
+| Service page | `Service` (+ `provider`), `BreadcrumbList` | no rich result, but clarifies entities |
 | Product | `Product` with `Offer` (price, currency, availability), images, brand, sku/gtin, variants | merchant listings and product snippets; ratings only from genuine customer reviews |
 | Article / blog | `Article` or `BlogPosting` | headline, image, datePublished, dateModified, author with a profile URL |
 | Event | `Event` | only for physical, publicly bookable events (online-event rich results are gone) |
 | Video | `VideoObject` | for pages where a video is the main content |
-| Breadcrumbs | none on websites | no visible trail (section 3), so no `BreadcrumbList`: markup must match what visitors see |
+| Breadcrumbs | `BreadcrumbList` | rich result on desktop only now, still useful for structure. Data only: it describes the page's place in the site's navigation and URLs, so keep it although websites show no visible trail (section 3) |
 
 Things that changed (don't promise these to users):
 - **FAQ rich results are gone for all sites** (removed May 2026). FAQ *content* still helps users and long-tail queries; FAQPage markup is optional and earns no rich result.

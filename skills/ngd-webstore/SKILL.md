@@ -126,7 +126,7 @@ Pick five that suit the brand and catalogue and that differ strongly (`reference
 - **Shared commerce components:** `ProductCard`, `Price` (handles currency, VAT label, sale plus prior price), `VariantPicker` (radio groups), `AddToCart` (fetcher with an optimistic count), `CartDrawer`, `Rating`, `UspBar`. Each has its own `.module.css`.
 - **Routes:** home, `/collections/:handle` (or localized equivalents), `/products/:handle`, `/cart`, `/search` (noindex), `/account/*` (ngd-panel patterns, noindex), withdrawal page, policy pages, `/feeds/google.xml`, webhooks.
 - **Rendering:** prerender small, stable catalogues; otherwise SSR with Workers Cache and tag purging on product-update webhooks (`references/commerce.md`, section 2). Cart, checkout and account are always `private, no-store` and `noindex`.
-- **Structured data:** `Product`/`ProductGroup` with offers on every product page and `Organization` with return and shipping policies. Validate.
+- **Structured data:** `Product`/`ProductGroup` with offers on every product page, `BreadcrumbList` (data only, no visible trail), and `Organization` with return and shipping policies. Validate.
 - **Images:** consistent aspect ratio, variant images, accurate `sizes`, only the first row eager, a card-to-product view transition.
 - **Test mode end to end:** add to cart, checkout (success, failure, cancel), webhook records the order, confirmation email.
 

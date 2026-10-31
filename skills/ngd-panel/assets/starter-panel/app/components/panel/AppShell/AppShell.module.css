@@ -98,10 +98,9 @@
   }
 }
 
+/* The whole content area: tables, boards and dashboards use all of it; forms limit their own width, left-aligned */
 .main {
   width: 100%;
-  max-width: 80rem;
-  margin-inline: auto;
   padding: var(--space-5) var(--space-4) var(--space-8);
 }
 
