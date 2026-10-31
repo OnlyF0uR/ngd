@@ -61,7 +61,7 @@ If something deviates on purpose (performance, accessibility, content length), n
 - `sitemap.xml` lists exactly the canonical, indexable pages; `robots.txt` on production allows crawling and references the sitemap; non-production hosts are disallowed.
 - Real 404 status for unknown URLs; 301s for moved URLs; one trailing-slash policy; no redirect chains.
 - `noindex` on thank-you pages, internal search, panels, cart and checkout.
-- Internal links are real `<a href>` links; deep pages are linked from their hub and link back to it in the content. No breadcrumb trail and no `BreadcrumbList` on website pages.
+- Internal links are real `<a href>` links; deep pages are linked from their hub and link back to it in the content, and carry `BreadcrumbList` data. No visible breadcrumb trail on website pages.
 - The keyword plan is implemented: each page's primary cluster appears naturally in title, H1, intro and a subheading.
 - Before launch: Cloudflare bot / AI-crawler settings don't block search crawlers (seo.md section 9).
 

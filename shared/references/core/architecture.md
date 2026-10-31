@@ -255,7 +255,7 @@ export const meta: Route.MetaFunction = ({ loaderData }) =>
     description: 'Hands-on sports massage near Utrecht Centraal. Book online in 30 seconds, same-week appointments.',
     path: '/services/sports-massage',
     image: '/og/sports-massage.jpg',
-    jsonLd: [serviceJsonLd(loaderData.service), localBusinessJsonLd()], // serviceJsonLd: your own helper next to the starter's
+    jsonLd: [serviceJsonLd(loaderData.service), breadcrumbJsonLd([...])], // serviceJsonLd: your own helper next to the starter's
   });
 ```
 
@@ -265,7 +265,7 @@ export const meta: Route.MetaFunction = ({ loaderData }) =>
 
 **404 and errors:** unmatched URLs return a real 404 rendered by the root `ErrorBoundary`; design that page (search, popular links, contact). For dynamic routes, `throw data(null, { status: 404 })` from the loader when the slug doesn't exist. A splat route that only renders a component returns 200: a soft 404 that hurts SEO.
 
-**JSON-LD:** build it from `content/` and `lib/site.ts` with small typed helpers (`organizationJsonLd`, `localBusinessJsonLd`, `serviceJsonLd`, `productJsonLd` …) and pass it through `seo({ jsonLd })`.
+**JSON-LD:** build it from `content/` and `lib/site.ts` with small typed helpers (`organizationJsonLd`, `localBusinessJsonLd`, `breadcrumbJsonLd`, `productJsonLd` …) and pass it through `seo({ jsonLd })`.
 
 ## 11. Redirects, trailing slashes, canonical host
 

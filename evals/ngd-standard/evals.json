@@ -44,7 +44,7 @@
         "The existing site's URLs are listed and mapped to new URLs (redirect map) in the SEO plan",
         "Questions already answered by the existing site are not asked again",
         "The sitemap keeps or improves pages that likely rank, rather than deleting them",
-        "No preset or planned page shows a breadcrumb trail, even if the current site has one; the hierarchy is kept by URLs, navigation and hub-to-spoke links"
+        "No preset or planned page shows a visible breadcrumb trail above its headline, even if the current site has one; BreadcrumbList structured data stays on deep pages"
       ]
     }
   ]

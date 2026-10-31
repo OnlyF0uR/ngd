@@ -1,6 +1,6 @@
 import { data } from 'react-router';
 import type { Route } from './+types/contact';
-import { seo } from '~/lib/seo';
+import { seo, breadcrumbJsonLd } from '~/lib/seo';
 import { site, telHref, whatsappHref } from '~/lib/site';
 import { cloudflareContext } from '~/lib/cloudflare-context';
 import { parseLead, deliverLead, hasLeadDestination, leadBindings, withinRateLimit } from '~/lib/leads.server';
@@ -15,6 +15,10 @@ export const meta: Route.MetaFunction = () =>
     title: `Contact | ${site.name}`,
     description: `Tell us what you need and we’ll reply within one working day. Or call ${site.contact.phone}.`,
     path: '/contact',
+    jsonLd: breadcrumbJsonLd([
+      { name: 'Home', path: '/' },
+      { name: 'Contact', path: '/contact' },
+    ]),
   });
 
 const fail = (status: number, errors: Record<string, string>) => data<LeadActionData>({ ok: false, errors }, { status });

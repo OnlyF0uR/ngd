@@ -146,10 +146,11 @@ if (undefinedVars.size) {
   fail('CSS variables are defined', `${list.join(', ')}: regenerate tokens.css with the current palette.mjs, or define them`);
 } else pass('CSS variables are defined');
 
-// Website layout (design-language.md sections 5 and 7). Panel, admin and account areas follow panel-ux.md instead.
+// Layout (design-language.md sections 5 and 7; panels: panel-ux.md sections 1 and 2)
 const appArea = (f) => /(^|\/)(panel|admin|account|dashboard|portal)(\/|\.|$)/i.test(relative('app', f));
 
-// Sections span the full width: a wide max-width (or width: min(…)) plus auto margins boxes the page into a centred column
+// Content spans the full width: a wide max-width (or width: min(…)) plus auto margins boxes it into a centred column.
+// Panels too: tables and dashboards use the whole content area; forms limit their own width, left-aligned.
 const varValues = new Map();
 for (const f of [...plainCss, ...cssModules]) {
   for (const m of stripComments(read(f)).matchAll(/(--[\w-]+)\s*:\s*([^;{}]+)/g)) varValues.set(m[1], m[2].trim());
@@ -161,7 +162,7 @@ const boxesSection = (body) =>
     [...resolveVars(value).matchAll(/(\d*\.?\d+)(rem|px)\b/g)].some(([, n, unit]) => Number(n) * (unit === 'rem' ? 16 : 1) >= 960),
   );
 const boxed = [];
-for (const f of cssModules.filter((f) => !appArea(f))) {
+for (const f of cssModules) {
   let css = stripComments(read(f));
   const innermost = /([^{};]*)\{([^{}]*)\}/g; // nested CSS: test and remove the innermost blocks until none are left
   while (innermost.test(css)) {
@@ -175,14 +176,19 @@ for (const f of cssModules.filter((f) => !appArea(f))) {
 if (boxed.length) {
   warn(
     'Sections use the full width (no centred container)',
-    `${boxed.slice(0, 6).join(', ')}: drop the max-width and auto margins, pad with var(--gutter) and limit text in ch (design-language.md section 5)`,
+    `${boxed.slice(0, 6).join(', ')}: drop the max-width and auto margins, pad with the gutter and limit text in ch (design-language.md section 5; panels: panel-ux.md section 1)`,
   );
 } else pass('Sections use the full width (no centred container)');
 
-// No breadcrumb trails (and so no BreadcrumbList data) on website pages
-const crumbs = [...sourceFiles, ...cssModules].filter((f) => !appArea(f) && /breadcrumb/i.test(read(f)));
-if (crumbs.length) fail('No breadcrumb trails on website pages', `${crumbs.join(', ')}: remove the trail and any BreadcrumbList data (seo.md section 3)`);
-else pass('No breadcrumb trails on website pages');
+// No visible breadcrumb trail on website pages: a trail component, a breadcrumb landmark or crumb styles.
+// BreadcrumbList structured data (breadcrumbJsonLd) is fine. Panels may show a trail on nested screens.
+const trailMarkup = /<Breadcrumbs?\b|aria-label=\{?[^>]*?breadcrumb|className=["'{][^"'}]*crumb(?!l)/i;
+const trailStyles = /\.[\w-]*crumb(?!l)[\w-]*/i;
+const crumbs = [...sourceFiles, ...cssModules].filter(
+  (f) => !appArea(f) && (f.endsWith('.css') ? trailStyles.test(stripComments(read(f))) : trailMarkup.test(read(f))),
+);
+if (crumbs.length) fail('No visible breadcrumb trail on website pages', `${crumbs.join(', ')}: remove the trail; BreadcrumbList data can stay (seo.md section 3)`);
+else pass('No visible breadcrumb trail on website pages');
 
 const lorem = grepFiles([...sourceFiles, ...cssModules], /lorem ipsum/i);
 if (lorem.length) fail('No lorem ipsum', lorem.join(', '));

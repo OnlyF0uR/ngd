@@ -114,7 +114,7 @@ Merge these into the core rounds; a short fourth round for roles and data is fin
 Pick five that suit the users and tasks and that differ strongly (`references/core/presets.md`):
 1. **Classic Sidebar:** a fixed sidebar, a top bar with search, KPI cards and a table with balanced density. A safe default for most admin panels.
 2. **Icon Rail + Context:** a slim icon rail plus a contextual second column (lists, folders, filters) next to the content. Suits CRM, mail, support and content tools.
-3. **Top-Nav Portal:** horizontal navigation, centred content, generous spacing, friendly empty states. Suits customer portals and account areas.
+3. **Top-Nav Portal:** horizontal navigation with the content on the same side edges (the public site's gutter), generous spacing, friendly empty states. Suits customer portals and account areas.
 4. **Inbox Split:** list and detail side by side, keyboard-first, with the command palette front and centre. Suits operations, moderation and support queues.
 5. **Bento Overview:** rounded inset surfaces and a dashboard of widgets in a bento grid, warm and visual. Suits consumer-facing apps and analytics.
 6. **Dense Workbench:** compact tables, a filter bar with saved views and multiple panes. Suits power users and back-office operations.

@@ -24,8 +24,8 @@ Admin and user panels are tools people use every day, often for hours. Good pane
 ## 1. App shell
 
 - **Sidebar** (240–280px) with the logo/workspace switcher at the top, primary navigation, secondary items (settings, help) at the bottom. It collapses to a 64px icon rail (with tooltips) and remembers the choice.
-- **Top bar:** page context or breadcrumbs, a search / command-palette trigger ("Search or jump to… ⌘K"), notifications, help, and the user menu (profile, theme, sign out).
-- **Content area** with a consistent maximum width for forms and settings, full width for tables and boards.
+- **Top bar:** a search / command-palette trigger ("Search or jump to… ⌘K"), notifications, help, and the user menu (profile, theme, sign out). No breadcrumb trail here: the sidebar's active item already says where you are (section 2).
+- **Content area** spans the full width next to the sidebar, with the same padding on every screen, so page headers always start on one line. Tables, boards and dashboards use all of it. Forms and settings limit their own width (about 40rem), left-aligned under the page header; never centre the whole content area in a `max-width` column, which leaves empty bands on wide screens.
 - The shell is server-rendered and appears instantly; content regions stream in behind skeletons (panel-architecture.md, section 5).
 
 ## 2. Navigation and information architecture
@@ -33,7 +33,7 @@ Admin and user panels are tools people use every day, often for hours. Good pane
 - Organise by the user's tasks and objects, not the database. The 3–5 most frequent tasks from discovery get top-level items; at most about seven primary items.
 - Show counts where they drive action (open tickets, pending approvals), never vanity counts.
 - Active state is unmistakable (filled background or accent bar plus `aria-current="page"`).
-- Deep hierarchies get breadcrumbs; sibling sections get tabs inside the page.
+- **Breadcrumbs only where you can't see the way back.** Top-level screens (the ones in the sidebar) never get a trail above their header. A nested screen (a record opened from a list) gets one parent link above its title ("← Customers"). Only three or more levels deep does it get a short trail that starts at the section ("Projects › Website relaunch › Task 42"), never at "Home" or "Dashboard". Sibling sections get tabs inside the page.
 - The same object always lives at the same URL, so links can be shared.
 
 ## 3. Page anatomy
@@ -74,7 +74,7 @@ A dashboard answers "what needs my attention?" before "how are we doing?":
 
 ## 7. Forms
 
-- One column, grouped sections with headings, labels above fields, helper text below, "(optional)" on optional fields.
+- One column of at most about 40rem, left-aligned under the page header (not centred), grouped sections with headings, labels above fields, helper text below, "(optional)" on optional fields.
 - Validate on blur and on submit, server-side always; show errors next to fields plus a summary at the top for long forms; focus the first error.
 - **Records** (create/edit): explicit Save with a sticky bar that appears when there are unsaved changes ("Unsaved changes · Discard · Save"), guarded against accidental navigation (`useBlocker`).
 - **Settings and preferences:** save per field or section automatically, with an inline "Saved" confirmation.
