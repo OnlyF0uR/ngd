@@ -28,7 +28,7 @@ Motion makes an interface feel alive and explains change: something appeared, mo
 3. **No loading screens, splash screens or preloaders.** Ever. The fastest page is the one that shows up.
 4. **Never hijack scrolling.** No smooth-scroll libraries, no scroll snapping on the whole page, no "one section per wheel tick", no scroll speed changes. Native scrolling is fast, accessible and what people expect.
 5. **Respect `prefers-reduced-motion`.** Put decorative motion inside `@media (prefers-reduced-motion: no-preference)`. In reduced mode keep only instant or opacity-only state changes.
-6. **Animate cheap properties:** `transform`, `opacity`, `filter`, `clip-path`. Avoid animating `width`, `height`, `top`, `margin` or `box-shadow` on large elements.
+6. **Animate cheap properties:** `transform` and `opacity`. Use `filter` and `clip-path` only on small elements, and never animate a large blur. Avoid animating `width`, `height`, `top`, `margin` or `box-shadow`.
 7. **Reveal once.** Content that has appeared stays put when scrolling back up (CSS scroll-linked effects are fine for decorative, position-tied motion).
 8. **Short and snappy.** UI feedback 120–200ms, larger moves 250–400ms, reveals up to about 600ms. Stagger 40–80ms between siblings, at most about 5 steps.
 9. **No layout shift.** Anything that animates in reserves its space from the start.
@@ -255,6 +255,6 @@ CSS covers nearly everything on marketing pages. Reach for a library only for ph
 - [ ] No element in the first viewport starts at `opacity: 0`.
 - [ ] Every decorative animation is inside `prefers-reduced-motion: no-preference`.
 - [ ] No preloader, no scroll-jacking, no smooth-scroll library.
-- [ ] Only transform/opacity/filter/clip-path animate on large elements.
+- [ ] Only transform and opacity animate on large elements.
 - [ ] Durations within the token ranges; stagger short.
 - [ ] Reduced motion tested (DevTools → Rendering → emulate prefers-reduced-motion).
