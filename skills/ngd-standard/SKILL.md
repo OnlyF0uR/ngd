@@ -1,6 +1,6 @@
 ---
 name: ngd-standard
-description: Next-generation design (NGD) workflow for landing pages, marketing and company websites, service, portfolio and event sites, and any other public content page that must look stunning, load instantly, rank on Google and generate leads. Interviews the user (theme color or three proposed options, images and whether to generate them, entrance and scroll animations, goals), researches keywords for the niche, shows five skeleton design presets in one HTML file to choose from, then builds the chosen design with the latest React Router (server-rendered or prerendered) on Cloudflare Workers, with CSS Modules and a conversational lead form. Use it whenever someone wants a website, landing page, homepage, one-pager, company or portfolio site, or a redesign of public pages, even if they don't mention design, SEO or Cloudflare. For online shops use ngd-webstore; for dashboards and admin or user panels use ngd-panel; combine them when a project needs several.
+description: Next-generation design (NGD) workflow for landing pages, marketing and company websites, service, portfolio and event sites, and any other public content page that must look stunning, load instantly, rank on Google and generate leads. Interviews the user (theme color or three proposed options, images and whether to generate them, entrance and scroll animations, goals), researches keywords for the niche, shows five skeleton design presets in one HTML file to choose from, then builds the chosen design with the latest TanStack Start (server-rendered or prerendered) on Cloudflare Workers, with CSS Modules and a conversational lead form. Use it whenever someone wants a website, landing page, homepage, one-pager, company or portfolio site, or a redesign of public pages, even if they don't mention design, SEO or Cloudflare. For online shops use ngd-webstore; for dashboards and admin or user panels use ngd-panel; combine them when a project needs several.
 ---
 
 # NGD Standard: landing pages and content sites
@@ -10,7 +10,7 @@ You are designing and building a public website whose job is to turn visitors in
 **Non-negotiables, and why they matter:**
 - **The user decides the look:** theme color, light/dark, motion and imagery. You propose, validate and apply, but you never impose.
 - **Five presets before production code.** People recognise what they want faster than they can describe it.
-- **Latest React Router in framework mode.** Every indexed page is server-rendered or prerendered (crawlers and slow phones get complete HTML), and the site is ready to deploy to Cloudflare Workers.
+- **Latest TanStack Start.** Every indexed page is server-rendered or prerendered (crawlers and slow phones get complete HTML), and the site is ready to deploy to Cloudflare Workers.
 - **CSS Modules for every component and page, plus a small `global.css`** (about 8 KB: tokens, reset, base). Shared code is extracted: one source of truth for facts, components for repeated UI.
 - **Fast by construction.** No loading screens, no scroll-jacking, content visible at first paint, Lighthouse mobile ≥ 95. Speed is conversion and ranking.
 - **SEO based on real keyword research for the niche**, with complete metadata, structured data, sitemap and robots on every page.
@@ -22,7 +22,7 @@ You are designing and building a public website whose job is to turn visitors in
 
 Work through the phases in order. Each one ends with something the user can see or approve, so they stay in control and nothing gets built on a guess.
 
-**Paths.** `references/…` and `assets/…` are files in this skill's directory (`<skill-dir>`, shown as the base directory when the skill loads; `${CLAUDE_SKILL_DIR}` in Claude Code). Run the helper scripts from the **project folder** with their full path, `node <skill-dir>/scripts/<script>.mjs …`, so that their output (`design/…`, `app/…`) lands in the project, never in the skill's directory.
+**Paths.** `references/…` and `assets/…` are files in this skill's directory (`<skill-dir>`, shown as the base directory when the skill loads; `${CLAUDE_SKILL_DIR}` in Claude Code). Run the helper scripts from the **project folder** with their full path, `node <skill-dir>/scripts/<script>.mjs …`, so that their output (`design/…`, `src/…`) lands in the project, never in the skill's directory.
 
 | Phase | You produce | Read |
 |---|---|---|
@@ -30,14 +30,14 @@ Work through the phases in order. Each one ends with something the user can see 
 | 1. Discover | interview answers → `DESIGN.md` | `references/core/discovery.md` |
 | 2. Research | keyword plan + competitor notes → `design/seo-plan.md` (panels: domain research → `design/panel-plan.md`) | `references/core/seo.md` (panels: the ngd-panel SKILL.md) |
 | 3. Presets | five skeleton directions in one HTML file; the user picks | `references/core/presets.md`, `references/core/design-language.md`; for the draft copy, form and motion idea also `copywriting.md`, `forms.md`, `motion.md` and `imagery.md` in `references/core/` |
-| 4. Foundation | latest React Router on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` (panels: also `assets/starter-panel/`) |
+| 4. Foundation | latest TanStack Start on Cloudflare Workers, tokens, global layer, layout, SEO plumbing | `references/core/architecture.md`, `assets/starter/` (panels: also `assets/starter-panel/`) |
 | 5. Build | every page or screen with real content, forms, images, motion | this skill's references, plus `references/core/` forms, copywriting, imagery and motion |
 | 6. Verify | checks pass, screenshots reviewed, fixes made | `references/core/quality.md` |
 | 7. Hand over | run/deploy instructions and what's left for the user | `references/core/quality.md` |
 
 ### Phase 0: orient (before your first question)
 - **Resume if possible.** If `DESIGN.md` exists in the project root, read it, tell the user where things stand, and continue from its *Next step* instead of interviewing again.
-- **Look at what exists:** an existing codebase (package.json, React Router and Wrangler config), a live site to replace (fetch it: content, structure, URLs that need redirects), brand assets, and any images the user supplied. Reference images outrank the default style: save image files to `design/references/`; for images pasted into the conversation, analyse what you see directly (`references/core/design-language.md`, section 12) and ask for the files only if they're needed in the project.
+- **Look at what exists:** an existing codebase (package.json, TanStack Start or React Router and Wrangler config; an existing React Router project stays on React Router: `references/core/architecture-react-router.md`), a live site to replace (fetch it: content, structure, URLs that need redirects), brand assets, and any images the user supplied. Reference images outrank the default style: save image files to `design/references/`; for images pasted into the conversation, analyse what you see directly (`references/core/design-language.md`, section 12) and ask for the files only if they're needed in the project.
 - **Inventory your tools**, because they change what you can offer: structured questions (such as AskUserQuestion), web search and fetch (keyword research), image generation (any connected tool that creates images), a browser or Playwright (screenshots), a way to show HTML (artifact or preview). Count tools that are listed by name and loaded on demand too. Never offer what you can't do, and when what you find contradicts what the user said (they expect no image tool, but one is connected), mention it once and follow the user.
 - **Check the environment** and pick the matching mode:
   - *Full* (a shell with Node and network access, such as Claude Code on a machine or cloud container): every phase as written.
@@ -57,10 +57,10 @@ For anything that will be indexed, research keywords for the niche, location and
 Build five clearly different directions in ONE file, `design/presets/round-1.html`, one preset at a time: write each as small files in `design/presets/round-1/` and assemble them with `node <skill-dir>/scripts/build-presets.mjs design/presets/round-1`. Use real draft copy and the generated tokens, check the file with `node <skill-dir>/scripts/screenshot.mjs design/presets/round-1.html --presets` and look at the screenshots, then show it and ask the user to pick one, mix, tweak, or request five more (`references/core/presets.md`). Write no production code before a direction is chosen. The choice is the user's, and building early wastes their time if they choose differently.
 
 ### Phase 4: foundation
-Scaffold the latest React Router (framework mode, SSR) on Cloudflare Workers, or upgrade the existing project. Apply the verified starter in `assets/starter/`, generate `app/styles/tokens.css` with `node <skill-dir>/scripts/palette.mjs`, then set up fonts, the small `global.css`, the layout shell, UI primitives and SEO plumbing (`references/core/architecture.md`). Reproduce the chosen preset faithfully: same typography, spacing rhythm, shape language and signature details.
+Scaffold the latest TanStack Start (SSR, file-based routes, server functions) on Cloudflare Workers, or update the existing project (an existing React Router project stays on React Router). Apply the verified starter in `assets/starter/`, generate `src/styles/tokens.css` with `node <skill-dir>/scripts/palette.mjs`, then set up fonts, the small `global.css`, the layout shell, UI primitives and SEO plumbing (`references/core/architecture.md`). Reproduce the chosen preset faithfully: same typography, spacing rhythm, shape language and signature details.
 
 ### Phase 5: build
-Build every page or screen with this skill's guidance. Every indexed page is rendered on the server: at request time (SSR) or at build time (prerendering, the same complete HTML served as a static file), with complete metadata and structured data. In non-indexed app areas, never block the shell on data: stream or lazy-load it behind skeletons. Extract shared code as you go (a second use becomes a component), keep component and page styles in `.module.css` files, and write real copy in the site's language, including the interface text in `app/lib/site.ts` (`references/core/copywriting.md`). Lorem ipsum never ships.
+Build every page or screen with this skill's guidance. Every indexed page is rendered on the server: at request time (SSR) or at build time (prerendering, the same complete HTML served as a static file), with complete metadata and structured data. In non-indexed app areas, never block the shell on data: stream or lazy-load it behind skeletons. Extract shared code as you go (a second use becomes a component), keep component and page styles in `.module.css` files, and write real copy in the site's language, including the interface text in `src/lib/site.ts` (`references/core/copywriting.md`). Lorem ipsum never ships.
 
 ### Phase 6: verify
 Run everything in `references/core/quality.md`: typecheck, build, `node <skill-dir>/scripts/ngd-audit.mjs .`, a Worker dry-run, screenshots at 390/768/1440 (plus dark mode if offered), Lighthouse on key pages, the lead form end to end, and an honest side-by-side review against the chosen preset. Fix what you find, then re-run.
@@ -116,9 +116,9 @@ Pick five that suit the brief and differ strongly (see `references/core/presets.
 **What each preset shows:** the homepage with header and mobile navigation, the hero, the proof band, three to five core sections in the planned order, the first two steps of the conversational form, the final CTA and the footer. Use real draft copy from the brief and keyword plan. Every preset uses the full width (no centred container), at most one has a copy-beside-image split hero, none shows a breadcrumb trail, and no headline or title has a pill, chip or badge above it: eyebrows are plain text (`references/core/design-language.md`, sections 5 and 7).
 
 ### Build notes
-- **Sitemap and templates:** build every page in `design/seo-plan.md` from the templates in `references/page-anatomy.md`. Prerender everything except routes with an action (contact) and pages with per-request data.
+- **Sitemap and templates:** build every page in `design/seo-plan.md` from the templates in `references/page-anatomy.md`. Prerender everything except routes with a POST handler (contact) and pages with per-request data.
 - **Lead capture:** use the starter's `StepForm` and `LeadForm` (`references/core/forms.md`). Define the form once and use it on the contact page and in final CTA sections, pre-selecting the service on service pages. Configure delivery (D1 plus email or webhook), Turnstile keys and the response-time promise, and test it end to end.
-- **Contact paths:** phone (`tel:`), WhatsApp (`wa.me` with a prefilled message) and email, consistent everywhere through `app/lib/site.ts`. On mobile, consider a sticky action bar after the hero.
+- **Contact paths:** phone (`tel:`), WhatsApp (`wa.me` with a prefilled message) and email, consistent everywhere through `src/lib/site.ts`. On mobile, consider a sticky action bar after the hero.
 - **Local businesses:** a specific `LocalBusiness` schema with hours and geo, consistent NAP, a click-to-load map, and Google Business Profile in the handover.
 - **Content marketing (if agreed):** articles as Markdown or MDX in the repo (or a headless CMS) rendered to prerendered pages with `Article` schema, author and dates. Link each article to the relevant service page.
 - **Campaign pages:** no navigation or a minimal one, UTM parameters carried into the lead (hidden fields), `noindex` if temporary or duplicated.
@@ -128,5 +128,5 @@ Pick five that suit the brief and differ strongly (see `references/core/presets.
 - [ ] The primary CTA is visible in the first viewport on mobile and desktop and repeated at the end of every long page.
 - [ ] The lead form is tested end to end: validation, success message with next steps, delivery to the agreed destination.
 - [ ] Every page in the SEO plan exists with its planned title, description, H1 and schema.
-- [ ] Contact details are identical everywhere and come from `app/lib/site.ts`.
+- [ ] Contact details are identical everywhere and come from `src/lib/site.ts`.
 - [ ] The homepage tells the full story (page-anatomy arc) without unanswered visitor questions.

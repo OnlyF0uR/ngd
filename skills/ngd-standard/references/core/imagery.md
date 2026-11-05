@@ -76,7 +76,7 @@ Targets: hero image under ~200 KB at mobile width, most content images under ~10
 
 ## 7. The image component contract
 
-Wrap these rules in one shared component (the starter's `app/components/media/Image/Image.tsx`) so no page can forget them. It should:
+Wrap these rules in one shared component (the starter's `src/components/media/Image/Image.tsx`) so no page can forget them. It should:
 - require `alt` (empty string allowed for decorative images), `width` and `height`;
 - build `srcset` from the available widths and accept a `sizes` prop (with a sensible default);
 - accept `priority` to switch to `fetchpriority="high"` and eager loading, otherwise lazy;
@@ -88,7 +88,7 @@ Wrap these rules in one shared component (the starter's `app/components/media/Im
 - **Icons:** one consistent set and stroke width (1.5–2px at 24px). Use an icon package that tree-shakes per icon (for example `lucide-react`), or inline SVG components. Never an icon font. Icons inherit `currentColor`.
 - **Logos:** SVG, optimised (SVGO). Provide a version for dark backgrounds. Client logo walls in a single monochrome tone.
 - **Illustrations and 3D objects:** one style throughout. Export SVG for flat illustration; WebP/AVIF with transparency for 3D renders.
-- **Favicon set:** SVG favicon (with a dark-mode media query inside if needed), 180×180 apple-touch-icon, 192/512 PNG for the web manifest, linked from `root.tsx`.
+- **Favicon set:** SVG favicon (with a dark-mode media query inside if needed), 180×180 apple-touch-icon, 192/512 PNG for the web manifest, linked from the root route's `head` (`src/routes/__root.tsx`).
 - **Social card (OG image):** 1200×630, legible at thumbnail size, brand-consistent. A default for the site, plus specific ones for key pages (articles, products). A quick way to make them: design the card as a small HTML page using the site's tokens and fonts (`design/og/home.html`), then capture it with `node <skill-dir>/scripts/screenshot.mjs design/og/home.html --widths 1200 --height 630 --screens 1 --out public/og` and rename the saved file (it ends in `-1200.png`) to `default.png`, the starter's `site.defaultOgImage`. Page-specific cards are passed as absolute URLs through `seo({ image })`.
 - **Favicons:** export the SVG mark, then PNGs (180×180 apple-touch-icon, 192 and 512 for the manifest); the same screenshot trick works for PNGs from an HTML page with the mark centred.
 

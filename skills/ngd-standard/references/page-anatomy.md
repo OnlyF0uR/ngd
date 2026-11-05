@@ -30,7 +30,7 @@ Not every page needs every step: a strong local-service page might merge 3 and 5
 
 ## 2. Section library
 
-Each section: its job, layout variants, and what to avoid. A section used on more than one page becomes a component in `app/components/sections/` with props for its content, so pages compose them; a one-off section stays with its route (in the route file, or in the route's folder: `app/routes/about/Story.tsx` with its own `.module.css`) until a second page needs it.
+Each section: its job, layout variants, and what to avoid. A section used on more than one page becomes a component in `src/components/sections/` with props for its content, so pages compose them; a one-off section stays with its route (in the route file, or in the route's private folder: `src/routes/_site/about/-components/Story.tsx` with its own `.module.css`) until a second page needs it.
 
 **Hero.** Job: the five-second answer and the first click.
 - Variants (design-language.md section 7): type-led statement across the width; full-bleed photo/video with the copy on a scrim; stacked stage (headline wide on top, a large visual below); layered (headline over the edge of an image); product-UI hero; form-first (first question of the lead form with chips); search-first (catalogues, real estate); split copy + visual, only when the visual must sit beside the words, and then breaking the box.
@@ -84,7 +84,7 @@ Each section: its job, layout variants, and what to avoid. A section used on mor
 
 **Blog index and article.** Articles answer real search questions in depth: title with the query, author with credentials, date, table of contents for long pieces, answer-first intro, scannable sections, original images or diagrams, internal links to the relevant service, a contextual CTA. Index: categories, featured article, pagination with real links.
 
-**Contact.** The conversational form, plus phone, WhatsApp, email, address with map (click-to-load), opening hours, response-time promise. Server-rendered (it has the form's action).
+**Contact.** The conversational form, plus phone, WhatsApp, email, address with map (click-to-load), opening hours, response-time promise. Server-rendered (it has the form's POST handler).
 
 **FAQ / help.** Grouped questions, search on larger sets, contact fallback.
 

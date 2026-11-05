@@ -6,7 +6,7 @@
     {
       "name": "ngd",
       "source": ".",
-      "description": "ngd-standard, ngd-webstore and ngd-panel: design-led website, store and panel builds with React Router on Cloudflare Workers"
+      "description": "ngd-standard, ngd-webstore and ngd-panel: design-led website, store and panel builds with TanStack Start on Cloudflare Workers"
     }
   ]
 }

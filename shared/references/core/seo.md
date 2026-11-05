@@ -1,6 +1,6 @@
 # SEO: research, structure, implementation
 
-Every indexed ngd page should rank for what its audience searches, render complete HTML on the server, and give search engines (and AI answer engines) clean signals. This file covers keyword research, site structure, on-page and technical SEO, structured data, local and international SEO, AI search, and launch. The React Router implementation details live in architecture.md.
+Every indexed ngd page should rank for what its audience searches, render complete HTML on the server, and give search engines (and AI answer engines) clean signals. This file covers keyword research, site structure, on-page and technical SEO, structured data, local and international SEO, AI search, and launch. The TanStack Start implementation details live in architecture.md.
 
 ## Contents
 1. Keyword research (do it for every niche)
@@ -95,7 +95,7 @@ For every indexable page:
 
 ## 5. Technical SEO checklist
 
-- **Server-rendered HTML** for every indexable route: all text, links, metadata and structured data present in the initial response (React Router SSR or prerendering; architecture.md). Don't rely on client-side rendering.
+- **Server-rendered HTML** for every indexable route: all text, links, metadata and structured data present in the initial response (TanStack Start SSR or prerendering; architecture.md). Don't rely on client-side rendering.
 - **Keep the HTML lean:** Googlebot reads only the first 2 MB of uncompressed HTML. Avoid inlining huge data blobs into the page for hydration.
 - **Correct status codes:** 200 for pages, 301 for permanent moves, 404 for unknown URLs (a real 404 status from the catch-all route, not a 200 "not found" page), 410 for deliberately removed content, 503 during maintenance.
 - **Crawl and index rules.** robots.txt controls *crawling*; `noindex` (a `<meta name="robots">` tag or an `X-Robots-Tag` header) controls *indexing*. A crawler only sees `noindex` on pages it may crawl, so a public page that must stay out of search gets `noindex` and stays crawlable. `Disallow` is for URLs that shouldn't be crawled at all: endless filter combinations, and private areas where a login does the real protecting. Use this table:

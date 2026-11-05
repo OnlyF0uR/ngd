@@ -1,6 +1,6 @@
 # Commerce architecture, SEO and compliance
 
-How an NGD webstore is put together on React Router + Cloudflare Workers: choosing the commerce backend, rendering and caching the catalogue, cart and checkout, orders and webhooks, store SEO, and the legal requirements that shape the UI. Verify provider APIs against their current docs before building; they change more often than the patterns here.
+How an NGD webstore is put together on TanStack Start + Cloudflare Workers: choosing the commerce backend, rendering and caching the catalogue, cart and checkout, orders and webhooks, store SEO, and the legal requirements that shape the UI. Verify provider APIs against their current docs before building; they change more often than the patterns here.
 
 ## Contents
 1. Choosing the commerce backend
@@ -18,7 +18,7 @@ How an NGD webstore is put together on React Router + Cloudflare Workers: choosi
 
 ## 1. Choosing the commerce backend
 
-The storefront is always ours (React Router on Workers). Where products, orders and payments live depends on the business:
+The storefront is always ours (TanStack Start on Workers). Where products, orders and payments live depends on the business:
 
 | Option | Good for | Watch out for |
 |---|---|---|
@@ -31,28 +31,28 @@ The storefront is always ours (React Router on Workers). Where products, orders 
 
 Decide with the user using: catalogue size and variant complexity, who manages products daily, markets and payment methods, existing platform and data (migration), digital vs physical vs subscriptions, B2B pricing, budget and fees. Record the choice and its reasons in DESIGN.md.
 
-Keep the integration behind a small server-only module (`app/lib/commerce.server.ts`) exposing what the UI needs (`getCollection`, `getProduct`, `searchProducts`, `getCart`, `addToCart` …), so pages don't depend on one provider's API shape and a migration stays possible.
+Keep the integration behind a small server-only module (`src/lib/commerce.server.ts`) exposing what the UI needs (`getCollection`, `getProduct`, `searchProducts`, `getCart`, `addToCart` …), and expose those to routes through server functions (`src/lib/commerce.functions.ts`), so pages don't depend on one provider's API shape, provider tokens never reach the browser, and a migration stays possible.
 
 ## 2. Rendering and caching the catalogue
 
 - **Product and category pages are indexed:** server-render them (or prerender when the catalogue is small and changes rarely). Price, availability, currency, images and the description must be in the HTML (structured data depends on it).
-- **Prerender** works for catalogues of up to a few hundred products that change rarely: build the path list from the commerce API in `react-router.config.ts` and trigger a rebuild (deploy hook) when products change.
-- **SSR + Workers Cache** for larger or frequently changing catalogues: public catalogue routes return `Cache-Control: public, max-age=60, stale-while-revalidate=600` and a `Cache-Tag` (`product-<id>`, `collection-<handle>`); a product-update webhook purges those tags. Anything personalised (cart counts, customer prices, logged-in state) stays out of cached HTML: load it client-side with a fetcher, or mark the response `private, no-store`.
+- **Prerender** works for catalogues of up to a few hundred products that change rarely: build the path list from the commerce API for the prerender `pages` in `vite.config.ts` (through `src/content/pages.ts`) and trigger a rebuild (deploy hook) when products change.
+- **SSR + Workers Cache** for larger or frequently changing catalogues: public catalogue routes return `Cache-Control: public, max-age=60, stale-while-revalidate=600` and a `Cache-Tag` (the route's `headers` option) (`product-<id>`, `collection-<handle>`); a product-update webhook purges those tags. Anything personalised (cart counts, customer prices, logged-in state) stays out of cached HTML: load it after hydration through a server function, or mark the response `private, no-store`.
 - **Stock freshness:** cached pages may show slightly old availability. Re-check stock when adding to the cart and at checkout, and refresh low-stock indicators client-side if exact numbers matter.
 - **Data per request:** fetch in parallel (`Promise.all`), select only the fields the page renders, and keep HTML lean (no full product JSON dumps; Googlebot reads only the first 2 MB).
 
 ## 3. Cart
 
 - Keep the cart server-side (provider cart API, or a cart in KV or D1 keyed by an HttpOnly cookie) so it survives devices and refreshes. The cart ID cookie is `HttpOnly; Secure; SameSite=Lax`.
-- Add to cart with `useFetcher` (`fetcher.Form method="post" action="/cart"`). Show the optimistic quantity immediately from `fetcher.formData`, open the cart drawer, and announce the change in a polite live region.
-- Without JavaScript the same form posts to `/cart` and redirects back, so add-to-cart still works.
+- Add to cart with a real `<form method="post" action="/cart">`. With JavaScript, submit it through a server function (`useServerFn(addToCart)`), show the optimistic quantity immediately (`useOptimistic`), open the cart drawer, and announce the change in a polite live region.
+- Without JavaScript the same form posts to `/cart`, whose server `POST` handler adds the item and answers with a `303` redirect back to the product, so add-to-cart still works (the pattern of architecture.md section 9).
 - Cart, checkout and account responses: `Cache-Control: private, no-store` and `noindex`.
 
 ## 4. Checkout and payments
 
 - **Prefer a hosted checkout** (Shopify, Stripe Checkout, Mollie hosted pages): it keeps card data out of your systems (lowest PCI scope), comes with local payment methods and wallets, and handles 3-D Secure. Brand it (logo, colors, fonts) so the transition feels continuous.
 - Offer the payment methods the market expects (cards, Apple Pay/Google Pay, PayPal, and local methods such as iDEAL/Wero in the Netherlands, Bancontact in Belgium, Klarna for buy-now-pay-later). Confirm availability with the provider.
-- Create the checkout session on the server (a route action) with the cart contents re-priced server-side; never trust client-side prices.
+- Create the checkout session on the server (a server function or a server route handler) with the cart contents re-priced server-side; never trust client-side prices.
 - A custom checkout (Payment Element and similar) is a bigger project: one page or an accordion of three steps, guest by default, express wallets on top, address autocomplete, inline validation, clear totals including shipping and VAT, and an unambiguous final button ("Order and pay").
 - **Subscriptions** (coffee, refills, boxes):
   - Use the platform's subscription feature or a dedicated provider, and check which payment methods can renew automatically. Cards, wallets and PayPal usually can; iDEAL and Bancontact are one-off methods that renew only through a SEPA Direct Debit mandate created by the first payment, which some providers support (Mollie, for example) and some subscription apps don't. Tell the user early if their customers' favourite method can't renew.
@@ -125,6 +125,6 @@ Track the funnel with consent where required: `view_item_list`, `view_item`, `ad
 ## 12. Performance specifics
 
 - Product grids: explicit image dimensions, `sizes` that match the grid, lazy below the first row, and `content-visibility: auto` on long lists.
-- Prefetch product pages on intent (`<Link prefetch="intent">`) and morph the card image into the product image with a view transition.
+- Preload product pages on intent (TanStack Router does it on hover and focus with `defaultPreload: 'intent'`) and morph the card image into the product image with a view transition.
 - Render reviews, ratings and recommendations server-side from APIs instead of third-party widget scripts.
 - Every marketing script, chat and review widget must justify its cost; load on interaction or after the main content.

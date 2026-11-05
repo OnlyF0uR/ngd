@@ -16,11 +16,11 @@ Nothing ships on "it builds". Verification proves the site is fast, findable, ac
 ## 1. Automated checks (run all)
 
 ```sh
-npm run typecheck                                  # wrangler types + react-router typegen + tsc
-npm run build                                      # includes prerendering
+npm run build                                      # includes prerendering; regenerates src/routeTree.gen.ts
+npm run typecheck                                  # tsc against the route tree (typed links, search params, server functions)
 node <skill-dir>/scripts/ngd-audit.mjs .               # NGD rules: versions, CSS budget, SEO tags, forms vs prerender …
 npx wrangler deploy --dry-run --outdir .wrangler/dry-run   # bundles the Worker exactly as deploy would
-npm run preview                                    # serves the build in the Workers runtime (workerd)
+npm run preview                                    # builds, then serves it in the Workers runtime (workerd)
 node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact /pricing --widths 390,768,1440
 node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact --widths 390,1440 --theme dark   # if dark mode exists
 ```
@@ -33,7 +33,7 @@ node <skill-dir>/scripts/screenshot.mjs http://localhost:4173/ /contact --widths
 CHROME_PATH=<path-to-chrome> npx lighthouse http://localhost:4173/ --only-categories=performance,accessibility,best-practices,seo --output=html --output-path=design/lighthouse-home.html
 ```
 
-Two caveats: `vite preview` serves uncompressed files (performance looks worse than production), and every non-production host (localhost, preview deployments) is deliberately blocked from indexing, so Lighthouse's "page is blocked from indexing" audit fails there by design. For realistic performance, run Lighthouse against a preview deployment (`npx wrangler versions upload` gives a URL) or serve `build/client` through a compressing static server; judge SEO on the other audits, and re-run the full check on the production URL after launch.
+Two caveats: `vite preview` serves uncompressed files (performance looks worse than production), and every non-production host (localhost, preview deployments) is deliberately blocked from indexing, so Lighthouse's "page is blocked from indexing" audit fails there by design. For realistic performance, run Lighthouse against a preview deployment (`npx wrangler versions upload` gives a URL) or serve `dist/client` through a compressing static server (`npx serve dist/client`); judge SEO on the other audits, and re-run the full check on the production URL after launch.
 
 ## 2. Visual review against the chosen preset
 
@@ -79,7 +79,7 @@ If something deviates on purpose (performance, accessibility, content length), n
 ## 6. Content and conversion
 
 - No lorem ipsum, "TBD", placeholder phone numbers or example.com addresses (unless the user knows and agreed).
-- Copy matches the brief: audience, tone, form of address, language(s); spelling checked. Interface text is translated too (`site.ui` in `app/lib/site.ts`: form steps, buttons, navigation labels, 404 page).
+- Copy matches the brief: audience, tone, form of address, language(s); spelling checked. Interface text is translated too (`site.ui` in `src/lib/site.ts`: form steps, buttons, navigation labels, 404 page).
 - The primary CTA is visible in the first viewport on mobile and desktop and repeated at the end of long pages.
 - Every claim, review and number is real and attributable.
 - Lead form tested end to end, from a prerendered page *and* from the contact page: validation, keyboard-only use, submission, success message, and the lead arriving at the agreed destination. Without a configured destination the starter refuses submissions in production, which is correct; document what the user must configure.

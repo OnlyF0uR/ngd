@@ -1,4 +1,4 @@
-# Applies to static files only (including prerendered HTML). Worker responses get their headers in workers/app.ts.
+# Applies to static files only (including prerendered HTML). Worker responses get their headers in src/server.ts.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 

@@ -85,7 +85,7 @@ Use fluid sizes with `clamp()` so type scales smoothly between 390px and 1440px.
 
 ## 4. Color application
 
-All colors come from `app/styles/tokens.css`, generated from the theme color by `scripts/palette.mjs`. Components use **semantic tokens** (`--color-bg`, `--color-text`, `--color-accent`, `--color-on-accent`, `--color-accent-text`, `--color-border`, `--color-success` …), never raw hex values and rarely the ramps directly. Then light/dark switching, re-theming and contrast all stay correct.
+All colors come from `src/styles/tokens.css`, generated from the theme color by `scripts/palette.mjs`. Components use **semantic tokens** (`--color-bg`, `--color-text`, `--color-accent`, `--color-on-accent`, `--color-accent-text`, `--color-border`, `--color-success` …), never raw hex values and rarely the ramps directly. Then light/dark switching, re-theming and contrast all stay correct.
 
 - **Primary CTA:** `--color-accent` with `--color-on-accent`. One primary CTA style across the whole site, so visitors learn it.
 - **Secondary CTA:** neutral — outline (`--color-border-input`, which keeps the 3:1 boundary contrast) or ghost/text with an arrow.

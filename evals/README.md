@@ -6,7 +6,7 @@ Test prompts for the ngd skills, one `evals.json` per skill (the format the skil
 |---|---|
 | `ngd-standard` | a local practice with no site yet; a Google Ads landing page with a fixed brand color and reference screenshots; a redesign that must keep its rankings |
 | `ngd-webstore` | a coffee roaster with beans, subscriptions and gear; a headless storefront for an existing Shopify shop with a monochrome brand |
-| `ngd-panel` | a customer portal plus a back office (two audiences); a small internal leads admin on an existing site |
+| `ngd-panel` | a customer portal plus a back office (two audiences); a small internal leads admin on an existing React Router site (stays on React Router); a website plus a client portal in one TanStack Start app (with `ngd-standard`) |
 
 ## Running them
 

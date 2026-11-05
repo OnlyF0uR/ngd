@@ -6,7 +6,7 @@ A lead form is where a website earns its keep. Most contact forms fail because t
 1. The conversational lead form
 2. Designing the questions
 3. Interaction details
-4. Implementation (React Router, progressive enhancement)
+4. Implementation (TanStack Start, progressive enhancement)
 5. Server side: validation, spam, delivery
 6. Other lead paths
 7. Privacy and compliance
@@ -54,53 +54,52 @@ Where to put it: the dedicated contact page, a final CTA section on most pages, 
 - **Submitting:** disable the button, show "Sending…" in place, keep the layout stable. If sending fails, keep every answer and offer an alternative (email address or phone number) in the error message.
 - **Persist on reload (optional):** keeping answers in `sessionStorage` for the session is a nice touch; never store them longer without consent.
 
-## 4. Implementation (React Router, progressive enhancement)
+## 4. Implementation (TanStack Start, progressive enhancement)
 
-The starter in `assets/starter/app/components/forms/` (`StepForm/` plus the site's `LeadForm.tsx`) implements all of the above and was tested in a browser end to end. Copy it and restyle it to the chosen preset. How it works, so you can adapt it:
+The starter in `assets/starter/src/components/forms/` (`StepForm/` plus the site's `LeadForm.tsx`) and its `/contact` route implement all of the above and were tested in a browser end to end, with and without JavaScript. Copy them and restyle the form to the chosen preset. How it works, so you can adapt it:
 
-- **One real form with one `<fieldset>` per step**, all server-rendered. It is a `fetcher.Form` posting to the route that owns the `action` (usually `/contact`), so the same form can sit on any page and show its success state in place. Without JavaScript, every step is visible as a normal form and the browser posts to that route, which renders the success state. (Exception: with Turnstile enabled, a visitor without JavaScript can't obtain a token; the starter refuses that submission with an email/phone alternative in the message. If those leads matter, store unverified submissions with a flag and skip the notification instead.)
-- **The action route is never prerendered.** Prerendered pages are served as static files, and a POST to them returns 405 without reaching your code. Prerender the marketing pages, keep `/contact` (or whichever route has the `action`) server-rendered, and point every embedded form at it.
+- **One real form with one `<fieldset>` per step**, all server-rendered: `<form method="post" action="/contact">`, posting to the route with the POST handler, so the same form can sit on any page. With JavaScript, the component sends the `FormData` with `fetch` and `Accept: application/json`, gets the result as JSON and shows the success state in place. Without JavaScript, every step is visible as a normal form and the browser posts to `/contact`, whose handler re-renders that page with the result (architecture.md section 9; the route passes it to the form as `serverResult`). (Exception: with Turnstile enabled, a visitor without JavaScript can't obtain a token; the starter refuses that submission with an email/phone alternative in the message. If those leads matter, store unverified submissions with a flag and skip the notification instead.)
+- **The form route is never prerendered.** Prerendered pages are served as static files, and a POST to them returns 405 without reaching your code. Prerender the marketing pages, keep `/contact` (or whichever route has the POST handler) server-rendered and out of the prerender list, and point every embedded form at it.
 - **Step mode starts before hydration:** `@media (scripting: enabled)` hides inactive steps (`fieldset:not([data-active])`), so there's no flash of the full form while the JavaScript loads. A class added after hydration applies the same rule in browsers without that media feature.
 - **Navigation buttons are `type="button"`**; only the final button submits. Native constraint attributes (`required`, `type`, `pattern`, `minlength`) do the validating: `checkValidity()` on the current fieldset's controls before advancing.
 - **`noValidate` is switched on after hydration** so the browser doesn't try to validate hidden steps on submit; the component validates every step itself and jumps to the first incomplete one.
-- **Server errors** come back from the action as `{ ok: false, errors: { fieldName: message } }`. The component jumps to the step containing the first failing field and shows the message inline.
+- **Server errors** come back as `{ ok: false, errors: { fieldName: message } }` with a matching status (400, 429, 503): as JSON with JavaScript, in the re-rendered page without. The component jumps to the step containing the first failing field and shows the message inline. A network failure keeps the answers and shows a retry message.
 - **Attribution:** the form sends the page it was submitted from (`source`) and any `utm_*` parameters as hidden fields, so every lead shows which page and campaign produced it. The UTM fields render only after hydration, because prerendered HTML never contains the query string (rendering them on the server would cause hydration mismatches).
-- **Success:** the action returns `{ ok: true }` and the component swaps to the success state, or the action `redirect`s to a `/thank-you` page (noindex) if you track conversions by URL.
+- **Success:** the handler returns `{ ok: true }` and the component swaps to the success state. To track conversions by URL instead, answer with a `303` redirect to a `/thank-you` page (noindex) on the no-JavaScript path and navigate there after a successful `fetch`.
 
 ## 5. Server side: validation, spam, delivery
 
-In the route `action` (React Router v8 with the typed Cloudflare context from architecture.md; the starter's `app/routes/contact.tsx` is a complete version):
+In the POST handler of the form route (the starter's `src/routes/_site/contact.tsx` calls `handleLeadSubmission()` in `src/lib/leads.server.ts`, a complete version). It reads bindings from `cloudflare:workers` (architecture.md section 8) and returns a status plus a result that the route sends as JSON or renders into the page:
 
 ```ts
-export async function action({ request, context }: Route.ActionArgs) {
-  const { env, ctx } = context.get(cloudflareContext);
+export async function handleLeadSubmission(request: Request): Promise<{ status: number; result: LeadActionData }> {
   const form = await request.formData();
 
   // 1. Honeypot: a hidden field humans never fill (neutral name, so browsers don't autofill it). Pretend success so bots learn nothing.
-  if (form.get('ngd_hp')) return { ok: true };
+  if (form.get('ngd_hp')) return { status: 200, result: { ok: true } };
 
   // 2. Validate on the server too: never trust the browser.
-  const { values, errors } = parseLead(form); // your schema (hand-written or a small validator library)
-  if (errors) return data({ ok: false, errors }, { status: 400 });
+  const parsed = parseLead(form); // your schema (hand-written or a small validator library)
+  if (parsed.errors) return { status: 400, result: { ok: false, errors: parsed.errors } };
 
   // 3. Bot check + rate limit.
   const ip = request.headers.get('CF-Connecting-IP') ?? '';
   if (site.turnstileSiteKey) {
-    const secret = leadBindings(env).TURNSTILE_SECRET_KEY;
-    if (!secret) return data({ ok: false, errors: { form: 'Form unavailable, please email us.' } }, { status: 503 }); // fail closed
+    const secret = leadBindings().TURNSTILE_SECRET_KEY;
+    if (!secret) return { status: 503, result: { ok: false, errors: { form: 'Form unavailable, please email us.' } } }; // fail closed
     if (!(await verifyTurnstile({ token: form.get('cf-turnstile-response'), secret, ip }))) {
-      return data({ ok: false, errors: { form: 'Please confirm you are human and try again.' } }, { status: 400 });
+      return { status: 400, result: { ok: false, errors: { form: 'Please confirm you are human and try again.' } } };
     }
   }
 
   // 4. Deliver: the lead must reach a destination before you report success.
-  if (!hasLeadDestination(env)) return data({ ok: false, errors: { form: 'Form unavailable, please email us.' } }, { status: 503 });
-  await deliverLead(env, ctx, values);          // D1 first (then email/webhook after the response), or email/webhook awaited
-  return { ok: true };
+  if (!hasLeadDestination()) return { status: 503, result: { ok: false, errors: { form: 'Form unavailable, please email us.' } } };
+  await deliverLead(parsed.lead); // D1 first (then email/webhook after the response via waitUntil), or email/webhook awaited
+  return { status: 200, result: { ok: true } };
 }
 ```
 
-- **Spam protection, layered:** honeypot field + Cloudflare Turnstile (server-side verification with the secret key) + a per-IP rate limit + server validation. The public site key lives in `app/lib/site.ts`, so forms on prerendered pages render the widget too. The script loads only when the last step is reached, so it never slows the first paint, and the form waits for the token before sending. The exact Turnstile, rate-limiting and email bindings are in architecture.md.
+- **Spam protection, layered:** honeypot field + Cloudflare Turnstile (server-side verification with the secret key) + a per-IP rate limit + server validation. The public site key lives in `src/lib/site.ts`, so forms on prerendered pages render the widget too. The script loads only when the last step is reached, so it never slows the first paint, and the form waits for the token before sending. The exact Turnstile, rate-limiting and email bindings are in architecture.md.
 - **Delivery options** (decided in discovery): store in D1 (simple, exportable, never lost), notify by email (Cloudflare's email sending, or the email provider the business already uses), forward to a CRM or automation webhook (secret URL in an env var), post to Slack/Teams. Store first, then notify, so a failing notification never loses a lead. Never answer "thanks" for a lead that reached no destination: the starter refuses submissions in production until a destination is configured, and shows the email/phone fallback instead.
 - **Idempotency:** disable double submits on the client; on the server, ignore an identical submission from the same IP within a few seconds.
 - **Never put secrets in client code.** Site keys are public; secret keys live in Worker secrets (`wrangler secret put`), and in `.dev.vars` locally (git-ignored).

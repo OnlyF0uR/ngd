@@ -1,6 +1,6 @@
 # NGD: next-generation design skills
 
-Agent skills that turn a request like *"build a website for my physiotherapy practice"* into a site that looks remarkable, loads instantly, ranks, and generates leads. They guide the agent through a short design interview, keyword research, **five skeleton design presets in a single HTML file** to choose from, and then a production build with the latest **React Router** (server-rendered or prerendered) on **Cloudflare Workers**, styled with **CSS Modules**.
+Agent skills that turn a request like *"build a website for my physiotherapy practice"* into a site that looks remarkable, loads instantly, ranks, and generates leads. They guide the agent through a short design interview, keyword research, **five skeleton design presets in a single HTML file** to choose from, and then a production build with the latest **TanStack Start** (server-rendered or prerendered, typed routes, server functions) on **Cloudflare Workers**, styled with **CSS Modules**. Existing projects built with React Router stay on React Router.
 
 | Skill | For | Highlights |
 |---|---|---|
@@ -16,7 +16,7 @@ The skills share one workflow and can be combined: a shop with an admin panel us
 2. **Discover:** at most three short question rounds with recommended defaults. The theme color comes from the user or from three proposed, contrast-checked options. Images: provided, AI-generated (only if an image tool is connected), stock, or none. Entrance and scroll animations: none, subtle or expressive. Plus goals, audience, proof, pages, lead routing and type-specific questions. Everything lands in `DESIGN.md`.
 3. **Research:** keyword research for the niche and location, competitor scan, one keyword cluster per page (`design/seo-plan.md`).
 4. **Presets:** five clearly different skeleton directions with real copy and the user's colors in one HTML viewer (tabs, desktop/tablet/mobile, light/dark, notes). The user picks, mixes, tweaks, or asks for five more.
-5. **Foundation:** latest React Router + Cloudflare Workers from a verified starter, generated color tokens, a small global stylesheet, CSS Modules everywhere.
+5. **Foundation:** latest TanStack Start + Cloudflare Workers from a verified starter, generated color tokens, a small global stylesheet, CSS Modules everywhere.
 6. **Build:** all pages or screens, real copy, the conversational form, images, motion that never delays content.
 7. **Verify:** typecheck, build, the NGD audit, Worker dry-run, screenshots at three widths, Lighthouse, and a review against the chosen preset.
 8. **Hand over:** run, deploy and launch instructions.
@@ -32,8 +32,8 @@ skills/<skill>/
 ├── scripts/                 palette.mjs (theme color → accessible tokens), build-presets.mjs
 │                            (assembles the presets file), screenshot.mjs, ngd-audit.mjs (project checks)
 └── assets/                  presets-shell.html (preset viewer), DESIGN.template.md,
-                             starter/ (verified React Router 8 + Cloudflare starter files),
-                             starter-panel/ (verified panel add-on: auth layout, shell, streaming, tables)
+                             starter/ (verified TanStack Start + Cloudflare starter files),
+                             starter-panel/ (verified panel add-on: auth guard + server functions, shell, streaming, typed tables)
 ```
 
 `references/core/`, `scripts/` and `assets/` are identical in every skill. They are generated from [`shared/`](shared/), so each skill folder stays self-contained.
@@ -55,7 +55,7 @@ The skills then appear as `/ngd:ngd-standard`, `/ngd:ngd-webstore` and `/ngd:ngd
 
 ## Requirements for the projects the skills build
 
-- Node.js 22.22 or newer (React Router 8), npm.
+- Node.js 22.12 or newer (TanStack Start; existing React Router 8 projects need 22.22), npm.
 - A Cloudflare account for deployment (Workers; Workers Paid is recommended for SSR-heavy shops and panels).
 - Optional: Playwright with Chromium for `screenshot.mjs` (`npm i -D playwright && npx playwright install chromium`), and Lighthouse.
 
@@ -65,5 +65,5 @@ The skills then appear as `/ngd:ngd-standard`, `/ngd:ngd-webstore` and `/ngd:ngd
 - Then run `node scripts/sync-shared.mjs` to copy it into each skill. `node scripts/sync-shared.mjs --check` verifies that everything is in sync and that the frontmatter is portable (name equals the folder, description ≤ 1024 characters, no angle brackets, SKILL.md under 500 lines). Run it before every commit.
 - `claude plugin validate .` checks the plugin and marketplace manifests.
 - [`evals/`](evals/) holds test prompts per skill with expectations to grade; run them after larger changes (its README explains how).
-- The technical facts (React Router 8.4, `@cloudflare/vite-plugin` 1.x, Wrangler 4, browser support, Google Search guidance) were verified in October 2026. The skills tell agents to check the latest versions at build time; refresh `references/core/architecture.md` and the starter when a new major version lands.
+- The technical facts (TanStack Start 1.169, `@cloudflare/vite-plugin` 1.x, Wrangler 4, browser support, Google Search guidance) were verified in November 2026; `references/core/architecture-react-router.md` keeps the React Router 8.4 guidance (October 2026) for existing projects. The skills tell agents to check the latest versions at build time; refresh `references/core/architecture.md` and the starters when a new major version lands.
 - A new ngd skill: create `skills/ngd-<name>/SKILL.md` with frontmatter, an intro, the empty workflow markers and type-specific sections, then run the sync.

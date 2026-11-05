@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * NGD project audit — checks a React Router + Cloudflare Workers project against the NGD rules.
+ * NGD project audit — checks a TanStack Start (or, for existing projects, React Router) + Cloudflare Workers
+ * project against the NGD rules.
  * Heuristic and fast; it complements (doesn't replace) typecheck, build, screenshots and Lighthouse.
  *
  *   node ngd-audit.mjs [projectDir]          # run after `npm run build` for the HTML checks
@@ -52,27 +53,47 @@ const installed = (name) => {
   }
 };
 
-const rrVersion = installed('react-router');
-if (!deps['react-router']) fail('React Router', 'react-router is not a dependency');
-else if (!offline) {
-  try {
-    const latest = execSync('npm view react-router version', { stdio: ['ignore', 'pipe', 'ignore'], timeout: 20000 }).toString().trim();
-    const [lMaj, lMin] = latest.split('.').map(Number);
-    const [iMaj, iMin] = (rrVersion ?? '0.0.0').split('.').map(Number);
-    if (iMaj < lMaj) fail('React Router is the latest version', `installed ${rrVersion}, latest ${latest} (major behind)`);
-    else if (iMaj === lMaj && iMin < lMin) warn('React Router is the latest version', `installed ${rrVersion}, latest ${latest}`);
-    else pass('React Router is the latest version', `${rrVersion}`);
-  } catch {
-    warn('React Router is the latest version', 'could not reach npm (use --offline to skip)');
-  }
-} else if (rrVersion && Number(rrVersion.split('.')[0]) < 8) {
-  fail('React Router is the latest version', `installed ${rrVersion}; v8 or newer is required (run without --offline to compare with npm)`);
-} else pass('React Router installed', rrVersion ?? 'not installed yet');
+// TanStack Start (new projects) or React Router (existing projects): source and build folders differ
+const isStart = Boolean(deps['@tanstack/react-start']);
+const isRR = !isStart && Boolean(deps['react-router']);
+const SRC = isStart ? 'src' : 'app';
+const BUILD = isStart ? 'dist/client' : 'build/client';
+const ROOT_ROUTE = isStart ? '__root.tsx' : 'root.tsx';
 
-if (deps['react-router-dom']) fail('No react-router-dom', 'removed in v8: import from react-router');
-for (const name of ['@react-router/node', '@react-router/serve', '@react-router/express']) {
-  if (deps[name]) fail('No Node server packages in a Workers app', `${name} switches the app to the Node entry`);
+function checkLatest(name, label, minMajor) {
+  const version = installed(name);
+  if (offline) {
+    if (version && Number(version.split('.')[0]) < minMajor) fail(`${label} is the latest version`, `installed ${version}; v${minMajor} or newer is required`);
+    else pass(`${label} installed`, version ?? 'not installed yet');
+    return;
+  }
+  try {
+    const latest = execSync(`npm view ${name} version`, { stdio: ['ignore', 'pipe', 'ignore'], timeout: 20000 }).toString().trim();
+    const [lMaj, lMin] = latest.split('.').map(Number);
+    const [iMaj, iMin] = (version ?? '0.0.0').split('.').map(Number);
+    if (iMaj < lMaj) fail(`${label} is the latest version`, `installed ${version}, latest ${latest} (major behind)`);
+    else if (iMaj === lMaj && iMin < lMin) warn(`${label} is the latest version`, `installed ${version}, latest ${latest}`);
+    else pass(`${label} is the latest version`, `${version}`);
+  } catch {
+    warn(`${label} is the latest version`, 'could not reach npm (use --offline to skip)');
+  }
 }
+
+if (isStart) {
+  pass('Framework', 'TanStack Start');
+  checkLatest('@tanstack/react-start', 'TanStack Start', 1);
+  for (const name of ['@tanstack/react-devtools', '@tanstack/react-router-devtools', '@tanstack/devtools-vite']) {
+    if (deps[name]) warn('No devtools in the app', `${name}: remove it (the template's devtools ship in the client bundle)`);
+  }
+} else if (isRR) {
+  pass('Framework', 'React Router (existing project: architecture-react-router.md)');
+  checkLatest('react-router', 'React Router', 8);
+  if (deps['react-router-dom']) fail('No react-router-dom', 'removed in v8: import from react-router');
+  for (const name of ['@react-router/node', '@react-router/serve', '@react-router/express']) {
+    if (deps[name]) fail('No Node server packages in a Workers app', `${name} switches the app to the Node entry`);
+  }
+} else fail('Framework', 'neither @tanstack/react-start nor react-router is a dependency');
+
 if (!deps['@cloudflare/vite-plugin']) fail('Cloudflare Vite plugin', '@cloudflare/vite-plugin missing');
 const styleLibs = ['tailwindcss', '@tailwindcss/vite', 'styled-components', '@emotion/react', '@emotion/styled', '@mui/material', '@chakra-ui/react', 'bootstrap'];
 const foundStyleLibs = styleLibs.filter((n) => deps[n]);
@@ -80,19 +101,34 @@ if (foundStyleLibs.length) fail('Styling is CSS Modules only', `remove ${foundSt
 else pass('Styling is CSS Modules only');
 
 // ------------------------------------------------------------------ source checks
-const sourceFiles = walk('app', (f) => /\.(tsx?|jsx?)$/.test(f));
-const cssModules = walk('app', (f) => f.endsWith('.module.css'));
-const plainCss = walk('app', (f) => f.endsWith('.css') && !f.endsWith('.module.css'));
+const sourceFiles = walk(SRC, (f) => /\.(tsx?|jsx?)$/.test(f) && !f.endsWith('routeTree.gen.ts'));
+const cssModules = walk(SRC, (f) => f.endsWith('.module.css'));
+const plainCss = walk(SRC, (f) => f.endsWith('.css') && !f.endsWith('.module.css'));
 const allWorkerFiles = [...sourceFiles, ...walk('workers', (f) => /\.(tsx?|jsx?)$/.test(f))];
 
 const grepFiles = (files, regex) => files.flatMap((f) => (regex.test(read(f)) ? [f] : []));
 
-const v7Context = grepFiles(allWorkerFiles, /context\.cloudflare\b|AppLoadContext|getLoadContext/);
-if (v7Context.length) fail('No React Router v7 Cloudflare context patterns', v7Context.join(', '));
-else pass('Typed v8 context (no context.cloudflare / AppLoadContext)');
+if (isRR) {
+  const v7Context = grepFiles(allWorkerFiles, /context\.cloudflare\b|AppLoadContext|getLoadContext/);
+  if (v7Context.length) fail('No React Router v7 Cloudflare context patterns', v7Context.join(', '));
+  else pass('Typed v8 context (no context.cloudflare / AppLoadContext)');
+  for (const cfg of ['react-router.config.ts', 'react-router.config.js']) {
+    if (exists(cfg) && /\bv8_|unstable_/.test(read(cfg))) fail('No removed future flags', `${cfg} contains v8_/unstable_ flags`);
+  }
+}
 
-for (const cfg of ['react-router.config.ts', 'react-router.config.js']) {
-  if (exists(cfg) && /\bv8_|unstable_/.test(read(cfg))) fail('No removed future flags', `${cfg} contains v8_/unstable_ flags`);
+if (isStart) {
+  // Server-only modules reached from code that also runs in the browser (components, loaders)
+  const serverOnlyImport = /^import\s+(?!type\b)[^;]*?from\s+['"](?:cloudflare:workers|[^'"]+\.server(?:\.tsx?)?)['"]/m;
+  const leaks = sourceFiles.filter(
+    (f) => !/\.(server|functions)\.tsx?$/.test(f) && f !== `${SRC}/server.ts` && serverOnlyImport.test(read(f)) && !/createServerFn|server:\s*\{/.test(read(f)),
+  );
+  if (leaks.length) fail('Server-only code stays on the server', `${leaks.join(', ')}: import *.server.ts / cloudflare:workers only from server functions, server route handlers or other server modules`);
+  else pass('Server-only code stays on the server');
+
+  // Inline JSON-LD must be escaped: Start writes head script children verbatim
+  const rawJsonLd = sourceFiles.filter((f) => /application\/ld\+json/.test(read(f)) && /JSON\.stringify\(/.test(read(f)) && !/jsonForScript/.test(read(f)));
+  if (rawJsonLd.length) fail('JSON-LD is escaped for inline scripts', `${rawJsonLd.join(', ')}: build it with seo() / jsonForScript() (a "</script>" in any string ends the tag)`);
 }
 
 // global stylesheet budget
@@ -109,11 +145,11 @@ if (globals.length > 1) warn('One global stylesheet', `found ${globals.join(', '
 
 // plain CSS imports outside root
 const cssImportOffenders = sourceFiles.filter((f) => {
-  if (basename(f) === 'root.tsx') return false;
+  if (basename(f) === ROOT_ROUTE) return false;
   return /import\s+['"][^'"]+(?<!\.module)\.css(\?url)?['"]/.test(read(f)) && !/@fontsource/.test(read(f));
 });
-if (cssImportOffenders.length) fail('Plain .css imported only in root.tsx', cssImportOffenders.join(', '));
-else pass('Plain .css imported only in root.tsx');
+if (cssImportOffenders.length) fail(`Plain .css imported only in ${ROOT_ROUTE}`, cssImportOffenders.join(', '));
+else pass(`Plain .css imported only in ${ROOT_ROUTE}`);
 
 // components and routes have modules; inline styles; raw colors
 if (cssModules.length === 0) fail('CSS Modules in use', 'no .module.css files found');
@@ -147,7 +183,7 @@ if (undefinedVars.size) {
 } else pass('CSS variables are defined');
 
 // Layout (design-language.md sections 5 and 7; panels: panel-ux.md sections 1 and 2)
-const appArea = (f) => /(^|\/)(panel|admin|account|dashboard|portal)(\/|\.|$)/i.test(relative('app', f));
+const appArea = (f) => /(^|\/)(panel|admin|account|dashboard|portal)(\/|\.|$)|(^|\/)routes\/app(\/|\.|$)/i.test(relative(SRC, f));
 
 // Content spans the full width: a wide max-width (or width: min(…)) plus auto margins boxes it into a centred column.
 // Panels too: tables and dashboards use the whole content area; forms limit their own width, left-aligned.
@@ -219,22 +255,46 @@ if (eyebrowPills.length) {
 const lorem = grepFiles([...sourceFiles, ...cssModules], /lorem ipsum/i);
 if (lorem.length) fail('No lorem ipsum', lorem.join(', '));
 
-// routes: meta on UI routes
-const routeFiles = walk('app/routes', (f) => /\.tsx$/.test(f));
-const missingMeta = routeFiles.filter((f) => {
-  const t = read(f);
-  const isUi = /export default function/.test(t);
-  const isLayout = /<Outlet/.test(t);
-  return isUi && !isLayout && !/export (const|function|async function) meta\b/.test(t);
-});
-if (missingMeta.length) warn('UI routes export meta (title, description, canonical)', missingMeta.join(', '));
-else if (routeFiles.length) pass('UI routes export meta');
+// routes: head/meta on UI routes; the URL paths the app serves
+const routeFiles = walk(`${SRC}/routes`, (f) => /\.(tsx?|jsx?)$/.test(f));
+const routesTs = exists('app/routes.ts') ? read('app/routes.ts') : '';
+/** TanStack file route → URL path: src/routes/_site/contact.tsx → /contact, sitemap[.]xml.ts → /sitemap.xml */
+function startRouteUrl(file) {
+  const rel = relative(`${SRC}/routes`, file).replace(/\\/g, '/').replace(/\.(tsx?|jsx?)$/, '');
+  if (/(^|\/)-|__root/.test(rel)) return null;
+  const segments = rel
+    .replace(/\[\.\]/g, '\u0000')
+    .split(/[/.]/)
+    .map((seg) => seg.replace(/\u0000/g, '.'))
+    .filter((seg) => seg && !seg.startsWith('_') && !/^\(.*\)$/.test(seg) && seg !== 'index' && seg !== 'route')
+    .map((seg) => seg.replace(/_$/, ''));
+  return '/' + segments.join('/');
+}
+const startRoutes = isStart ? routeFiles.map((f) => ({ file: f, url: startRouteUrl(f) })).filter((r) => r.url) : [];
+
+if (isStart) {
+  const missingHead = routeFiles.filter((f) => {
+    const t = read(f);
+    return /component:/.test(t) && !/<Outlet/.test(t) && !/__root/.test(f) && !/\bhead:/.test(t);
+  });
+  if (missingHead.length) warn('UI routes set head (title, description, canonical)', missingHead.join(', '));
+  else if (routeFiles.length) pass('UI routes set head');
+} else {
+  const missingMeta = routeFiles.filter((f) => {
+    const t = read(f);
+    const isUi = /export default function/.test(t);
+    const isLayout = /<Outlet/.test(t);
+    return isUi && !isLayout && !/export (const|function|async function) meta\b/.test(t);
+  });
+  if (missingMeta.length) warn('UI routes export meta (title, description, canonical)', missingMeta.join(', '));
+  else if (routeFiles.length) pass('UI routes export meta');
+}
 
 // sitemap and robots
-const routesTs = exists('app/routes.ts') ? read('app/routes.ts') : '';
-if (!/sitemap\.xml/.test(routesTs) && !exists('public/sitemap.xml')) fail('sitemap.xml', 'no sitemap route or file');
+const hasRoute = (url) => (isStart ? startRoutes.some((r) => r.url === url) : new RegExp(url.slice(1).replace('.', '\\.')).test(routesTs));
+if (!hasRoute('/sitemap.xml') && !exists('public/sitemap.xml')) fail('sitemap.xml', 'no sitemap route or file');
 else pass('sitemap.xml present');
-if (!/robots\.txt/.test(routesTs) && !exists('public/robots.txt')) fail('robots.txt', 'no robots route or file');
+if (!hasRoute('/robots.txt') && !exists('public/robots.txt')) fail('robots.txt', 'no robots route or file');
 else pass('robots.txt present');
 
 // wrangler + headers + secrets hygiene
@@ -244,22 +304,25 @@ else {
   const w = read(wranglerFile);
   if (!/compatibility_date/.test(w)) fail('Wrangler compatibility_date', wranglerFile);
   else pass('Wrangler config', wranglerFile);
-  if (exists('build/client/index.html') && !/html_handling/.test(w)) warn('Prerendered pages: assets.html_handling set', 'default redirects /about to /about/');
+  if (exists(`${BUILD}/index.html`) && !/html_handling/.test(w)) warn('Prerendered pages: assets.html_handling set', 'default redirects /about to /about/');
+  if (isStart && exists(`${SRC}/server.ts`) && /["']?main["']?\s*[:=]\s*["']@tanstack\/react-start\/server-entry["']/.test(w)) {
+    fail('Worker entry is src/server.ts', `${wranglerFile} "main" points at @tanstack/react-start/server-entry, so src/server.ts (redirects, headers, noindex) never runs: set "main": "./src/server.ts"`);
+  }
 }
 if (!exists('public/_headers') || !/immutable/.test(read('public/_headers'))) warn('Long-term caching for /assets/*', 'add public/_headers with Cache-Control immutable');
 else pass('Long-term caching for /assets/*');
 if (exists('.gitignore') && !/\.dev\.vars/.test(read('.gitignore'))) fail('.dev.vars is git-ignored', 'secrets could be committed');
 
 // ------------------------------------------------------------------ site config and lead delivery
-if (exists('app/lib/site.ts')) {
-  const siteTs = read('app/lib/site.ts');
-  if (/https?:\/\/(www\.)?example\.com/.test(siteTs)) fail('Production URL set in app/lib/site.ts', 'site.url is still example.com (canonicals, sitemap and OG URLs use it)');
-  if (/1x00000000000000000000AA/.test(siteTs)) warn('Real Turnstile site key', 'app/lib/site.ts still has the always-passing test key: replace it before launch');
+if (exists(`${SRC}/lib/site.ts`)) {
+  const siteTs = read(`${SRC}/lib/site.ts`);
+  if (/https?:\/\/(www\.)?example\.com/.test(siteTs)) fail(`Production URL set in ${SRC}/lib/site.ts`, 'site.url is still example.com (canonicals, sitemap and OG URLs use it)');
+  if (/1x00000000000000000000AA/.test(siteTs)) warn('Real Turnstile site key', `${SRC}/lib/site.ts still has the always-passing test key: replace it before launch`);
   for (const m of siteTs.matchAll(/(?:defaultOgImage|logo):\s*['"](\/[^'"]+)['"]/g)) {
     if (!exists(join('public', m[1]))) warn('Assets referenced in site config exist', `public${m[1]} is missing`);
   }
 }
-if (exists('app/lib/leads.server.ts') && wranglerFile) {
+if (exists(`${SRC}/lib/leads.server.ts`) && wranglerFile) {
   const w = read(wranglerFile).replace(/^\s*\/\/.*$/gm, '');
   if (!/d1_databases|send_email/.test(w)) {
     warn('Lead destination configured', 'no D1 or send_email binding in wrangler config: unless LEAD_WEBHOOK_URL is set as a secret, production refuses lead submissions');
@@ -267,25 +330,34 @@ if (exists('app/lib/leads.server.ts') && wranglerFile) {
 }
 
 // ------------------------------------------------------------------ built HTML (prerendered pages)
-const htmlFiles = walk('build/client', (f) => f.endsWith('.html') && !basename(f).startsWith('__'));
-if (!htmlFiles.length) warn('Prerendered HTML checks', 'no build/client/*.html (run `npm run build` first, or nothing is prerendered)');
-const prerenderedPaths = new Set(
-  htmlFiles.map((f) => '/' + relative('build/client', f).replace(/\\/g, '/').replace(/(^|\/)index\.html$/, '').replace(/\.html$/, '')),
-);
-// Paths the app can serve: prerendered pages, static route literals in routes.ts, prefixes of dynamic routes, public files
-const routeLiterals = [...routesTs.matchAll(/(?:route|prefix)\(\s*['"]([^'"]*)['"]/g)].map((m) => '/' + m[1].replace(/^\//, ''));
-const staticRoutes = new Set(['/', ...routeLiterals.filter((r) => !/[:*]/.test(r))]);
-const dynamicPrefixes = routeLiterals.filter((r) => /[:*]/.test(r)).map((r) => r.slice(0, r.search(/[:*]/)));
+const htmlFiles = walk(BUILD, (f) => f.endsWith('.html') && !basename(f).startsWith('__') && !basename(f).startsWith('_shell'));
+if (!htmlFiles.length) warn('Prerendered HTML checks', `no ${BUILD}/*.html (run \`npm run build\` first, or nothing is prerendered)`);
+const pagePath = (f) => '/' + relative(BUILD, f).replace(/\\/g, '/').replace(/(^|\/)index\.html$/, '').replace(/\.html$/, '');
+const prerenderedPaths = new Set(htmlFiles.map(pagePath));
+// Paths the app can serve: prerendered pages, static routes, prefixes of dynamic routes, public files
+const routeLiterals = isStart
+  ? startRoutes.map((r) => r.url.replace(/\/\$[^/]*/g, '/:param'))
+  : [...routesTs.matchAll(/(?:route|prefix)\(\s*['"]([^'"]*)['"]/g)].map((m) => '/' + m[1].replace(/^\//, ''));
+const staticRoutes = new Set(['/', ...routeLiterals.filter((r) => !/[:*$]/.test(r))]);
+const dynamicPrefixes = routeLiterals.filter((r) => /[:*$]/.test(r)).map((r) => r.slice(0, r.search(/[:*$]/)));
 function knownPath(href) {
   if (prerenderedPaths.has(href) || staticRoutes.has(href)) return true;
   if (dynamicPrefixes.some((p) => p.length > 1 && href.startsWith(p))) return true;
-  if (/\.[a-z0-9]{2,5}$/i.test(href)) return exists(join('public', href)) || exists(join('build/client', href));
+  if (/\.[a-z0-9]{2,5}$/i.test(href)) return exists(join('public', href)) || exists(join(BUILD, href));
   return [...staticRoutes].some((r) => r !== '/' && href.startsWith(r + '/'));
+}
+
+// Routes with a POST handler must never be prerendered (static paths answer POST with 405)
+if (isStart) {
+  const postRoutes = startRoutes.filter((r) => /server:\s*\{[\s\S]*\bPOST\b/.test(read(r.file)));
+  const staticPost = postRoutes.filter((r) => prerenderedPaths.has(r.url));
+  if (staticPost.length) fail('Routes with a POST handler are server-rendered', `${staticPost.map((r) => r.url).join(', ')} prerendered: remove from the prerender list (content/pages.ts) and keep autoStaticPathsDiscovery and crawlLinks off`);
+  else if (postRoutes.length && htmlFiles.length) pass('Routes with a POST handler are server-rendered');
 }
 
 for (const f of htmlFiles) {
   const html = read(f);
-  const page = '/' + relative('build/client', f).replace(/\\/g, '/').replace(/(^|\/)index\.html$/, '');
+  const page = pagePath(f) || '/';
   const problems = [];
   const soft = [];
   if (!/<html[^>]*\slang="[^"]+"/.test(html)) problems.push('missing <html lang>');
@@ -300,6 +372,7 @@ for (const f of htmlFiles) {
   const imgsWithoutSize = (html.match(/<img(?![^>]*\bwidth=)[^>]*>/g) ?? []).length;
   if (imgsWithoutSize) soft.push(`${imgsWithoutSize} <img> without width/height`);
   if (Buffer.byteLength(html) > 1.5 * 1024 * 1024) problems.push('HTML over 1.5 MB (Googlebot reads 2 MB)');
+  if (/data-ngd-placeholder/.test(html)) problems.push('placeholder content (data-ngd-placeholder): replace it with the real text from the user');
   for (const m of html.matchAll(/<form[^>]*method="post"[^>]*>/gi)) {
     const action = m[0].match(/action="([^"]*)"/)?.[1] ?? page;
     const target = action.split('?')[0].replace(/\/$/, '') || '/';

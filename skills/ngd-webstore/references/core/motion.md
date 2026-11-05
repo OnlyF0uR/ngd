@@ -111,7 +111,7 @@ Content already in the viewport at load is past its entry range, so it is fully 
 Use when you want the "appears once, in sequence" feel or need support beyond scroll-driven animations. Elements are only hidden after hydration, and only if they are still below the fold, so nothing visible ever blinks away.
 
 ```tsx
-// app/components/motion/Reveal/Reveal.tsx (in the starter)
+// src/components/motion/Reveal/Reveal.tsx (in the starter)
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import styles from './Reveal.module.css';
 
@@ -176,7 +176,7 @@ Scroll-linked extras (a progress line, a slowly scaling image) use `animation-ti
 
 ### 4.6 Route transitions with the View Transitions API
 
-React Router can wrap navigations in a view transition: add `viewTransition` to `<Link>`, `<NavLink>` or `<Form>`. The default is a cross-fade of the whole page; keep it quick:
+TanStack Router can wrap navigations in a view transition: `defaultViewTransition: true` in `createRouter` (`src/router.tsx`) for every navigation, or `viewTransition` on a single `<Link>` or `navigate()`. The default is a cross-fade of the whole page; keep it quick:
 
 ```css
 /* global.css */
@@ -187,7 +187,7 @@ React Router can wrap navigations in a view transition: add `viewTransition` to 
 }
 ```
 
-Shared-element morphs (a product card image growing into the product page image): give both elements the same `view-transition-name` only while that transition runs. React Router's `useViewTransitionState(href)` tells a link whether its transition is in progress, so you can set the name conditionally. Names must be unique on the page.
+Shared-element morphs (a product card image growing into the product page image): give both elements the same `view-transition-name`, set only on the element that is part of this transition (the clicked card, e.g. through a `data-` attribute set in its click handler, and the product page's image). Names must be unique on the page. To animate different navigations differently, pass `viewTransition={{ types: ['product'] }}` and style `:active-view-transition-type(product)`.
 
 ### 4.7 Logo marquee
 

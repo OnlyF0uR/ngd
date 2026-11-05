@@ -24,7 +24,21 @@
       "expectations": [
         "Cloudflare Access (or equivalent zero-auth-code option) is recommended for a small internal team",
         "The existing project's tokens and components are reused rather than restarted",
-        "The leads table uses URL-driven filters and pagination and offers CSV export"
+        "The leads table uses URL-driven filters and pagination and offers CSV export",
+        "The existing React Router project stays on React Router (architecture-react-router.md); no migration to TanStack Start is proposed unless asked"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I run a small bookkeeping firm. I want a new website that brings in clients, and a client portal on the same site where clients log in to upload receipts and see their filing deadlines.",
+      "expected_output": "Loads ngd-standard and ngd-panel together and runs one interview, one DESIGN.md and one TanStack Start project: prerendered public pages with a lead form, and a portal under its own prefix with server-side auth.",
+      "files": [],
+      "expectations": [
+        "Both ngd-standard and ngd-panel guidance is used, with one interview and one DESIGN.md that has a section per surface",
+        "The plan is one TanStack Start project on Cloudflare Workers: public pages prerendered (contact server-rendered for the form), the portal under its own route prefix such as /app or /portal",
+        "Portal data and uploads go through server functions or server route handlers that check the session and the client's own records, not only a route guard",
+        "The portal is noindex, private, no-store and disallowed in robots.txt, while the public pages stay indexable",
+        "The public site's presets come first; the portal presets inherit its tokens and typography"
       ]
     }
   ]

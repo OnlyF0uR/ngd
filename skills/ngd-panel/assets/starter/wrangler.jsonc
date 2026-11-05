@@ -5,14 +5,16 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "my-site",
-	"compatibility_date": "2026-10-06", // keep the date the scaffolder generated
-	"main": "./workers/app.ts",
+	// Today's date for a new project: the TanStack template ships an old one.
+	"compatibility_date": "2026-11-04",
+	// The custom server entry (redirects, headers). The template's "@tanstack/react-start/server-entry" would skip it.
+	"main": "./src/server.ts",
 	"assets": {
-		// Prerendered pages are written as /about/index.html; serve them at /about without a redirect.
+		// Prerendered pages are written as /about.html; serve them at /about and drop trailing slashes.
 		"html_handling": "drop-trailing-slash"
 	},
 	// Public, environment-specific values go in "vars"; secrets via `npx wrangler secret put NAME` (and .dev.vars locally).
-	// Site facts (production URL, contact details, Turnstile site key) live in app/lib/site.ts.
+	// Site facts (production URL, contact details, Turnstile site key) live in src/lib/site.ts.
 	"vars": {},
 	"observability": {
 		"enabled": true

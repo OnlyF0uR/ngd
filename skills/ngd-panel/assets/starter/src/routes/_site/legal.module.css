@@ -1,0 +1,5 @@
+.page {
+  composes: prose from '~/styles/typography.module.css';
+  padding-block: var(--space-9);
+  padding-inline: var(--gutter);
+}
