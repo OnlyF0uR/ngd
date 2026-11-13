@@ -1,6 +1,6 @@
 # NGD: next-generation design skills
 
-Agent skills that turn a request like *"build a website for my physiotherapy practice"* into a site that looks remarkable, loads instantly, ranks, and generates leads. They guide the agent through a short design interview, keyword research, **five skeleton design presets in a single HTML file** to choose from, and then a production build with the latest **TanStack Start** (server-rendered or prerendered, typed routes, server functions) on **Cloudflare Workers**, styled with **CSS Modules**. Existing projects built with React Router stay on React Router.
+Agent skills that turn a request like *"build a website for my physiotherapy practice"* into a site that looks remarkable, loads instantly, ranks, and generates leads. They guide the agent through a short design interview, keyword research, **five skeleton design presets in a single HTML file** to choose from, and then a production build with the latest **TanStack Start** (server-rendered or prerendered, typed routes, server functions) on **Cloudflare Workers**, styled with **CSS Modules**.
 
 | Skill | For | Highlights |
 |---|---|---|
@@ -55,7 +55,7 @@ The skills then appear as `/ngd:ngd-standard`, `/ngd:ngd-webstore` and `/ngd:ngd
 
 ## Requirements for the projects the skills build
 
-- Node.js 22.12 or newer (TanStack Start; existing React Router 8 projects need 22.22), npm.
+- Node.js 22.12 or newer (TanStack Start), npm.
 - A Cloudflare account for deployment (Workers; Workers Paid is recommended for SSR-heavy shops and panels).
 - Optional: Playwright with Chromium for `screenshot.mjs` (`npm i -D playwright && npx playwright install chromium`), and Lighthouse.
 
@@ -65,5 +65,5 @@ The skills then appear as `/ngd:ngd-standard`, `/ngd:ngd-webstore` and `/ngd:ngd
 - Then run `node scripts/sync-shared.mjs` to copy it into each skill. `node scripts/sync-shared.mjs --check` verifies that everything is in sync and that the frontmatter is portable (name equals the folder, description ≤ 1024 characters, no angle brackets, SKILL.md under 500 lines). Run it before every commit.
 - `claude plugin validate .` checks the plugin and marketplace manifests.
 - [`evals/`](evals/) holds test prompts per skill with expectations to grade; run them after larger changes (its README explains how).
-- The technical facts (TanStack Start 1.169, `@cloudflare/vite-plugin` 1.x, Wrangler 4, browser support, Google Search guidance) were verified in November 2026; `references/core/architecture-react-router.md` keeps the React Router 8.4 guidance (October 2026) for existing projects. The skills tell agents to check the latest versions at build time; refresh `references/core/architecture.md` and the starters when a new major version lands.
+- The technical facts (TanStack Start 1.169, `@cloudflare/vite-plugin` 1.x, Wrangler 4, browser support, Google Search guidance) were verified in November 2026. The skills tell agents to check the latest versions at build time; refresh `references/core/architecture.md` and the starters when a new major version lands.
 - A new ngd skill: create `skills/ngd-<name>/SKILL.md` with frontmatter, an intro, the empty workflow markers and type-specific sections, then run the sync.

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * NGD project audit — checks a TanStack Start (or, for existing projects, React Router) + Cloudflare Workers
- * project against the NGD rules.
+ * NGD project audit — checks a TanStack Start + Cloudflare Workers project against the NGD rules.
  * Heuristic and fast; it complements (doesn't replace) typecheck, build, screenshots and Lighthouse.
  *
  *   node ngd-audit.mjs [projectDir]          # run after `npm run build` for the HTML checks
@@ -53,12 +52,9 @@ const installed = (name) => {
   }
 };
 
-// TanStack Start (new projects) or React Router (existing projects): source and build folders differ
-const isStart = Boolean(deps['@tanstack/react-start']);
-const isRR = !isStart && Boolean(deps['react-router']);
-const SRC = isStart ? 'src' : 'app';
-const BUILD = isStart ? 'dist/client' : 'build/client';
-const ROOT_ROUTE = isStart ? '__root.tsx' : 'root.tsx';
+const SRC = 'src';
+const BUILD = 'dist/client';
+const ROOT_ROUTE = '__root.tsx';
 
 function checkLatest(name, label, minMajor) {
   const version = installed(name);
@@ -79,20 +75,13 @@ function checkLatest(name, label, minMajor) {
   }
 }
 
-if (isStart) {
+if (deps['@tanstack/react-start']) {
   pass('Framework', 'TanStack Start');
   checkLatest('@tanstack/react-start', 'TanStack Start', 1);
-  for (const name of ['@tanstack/react-devtools', '@tanstack/react-router-devtools', '@tanstack/devtools-vite']) {
-    if (deps[name]) warn('No devtools in the app', `${name}: remove it (the template's devtools ship in the client bundle)`);
-  }
-} else if (isRR) {
-  pass('Framework', 'React Router (existing project: architecture-react-router.md)');
-  checkLatest('react-router', 'React Router', 8);
-  if (deps['react-router-dom']) fail('No react-router-dom', 'removed in v8: import from react-router');
-  for (const name of ['@react-router/node', '@react-router/serve', '@react-router/express']) {
-    if (deps[name]) fail('No Node server packages in a Workers app', `${name} switches the app to the Node entry`);
-  }
-} else fail('Framework', 'neither @tanstack/react-start nor react-router is a dependency');
+} else fail('Framework', '@tanstack/react-start is not a dependency: ngd projects are TanStack Start (another framework is migrated first, architecture.md section 3)');
+for (const name of ['@tanstack/react-devtools', '@tanstack/react-router-devtools', '@tanstack/devtools-vite']) {
+  if (deps[name]) warn('No devtools in the app', `${name}: remove it (the template's devtools ship in the client bundle)`);
+}
 
 if (!deps['@cloudflare/vite-plugin']) fail('Cloudflare Vite plugin', '@cloudflare/vite-plugin missing');
 const styleLibs = ['tailwindcss', '@tailwindcss/vite', 'styled-components', '@emotion/react', '@emotion/styled', '@mui/material', '@chakra-ui/react', 'bootstrap'];
@@ -104,32 +93,20 @@ else pass('Styling is CSS Modules only');
 const sourceFiles = walk(SRC, (f) => /\.(tsx?|jsx?)$/.test(f) && !f.endsWith('routeTree.gen.ts'));
 const cssModules = walk(SRC, (f) => f.endsWith('.module.css'));
 const plainCss = walk(SRC, (f) => f.endsWith('.css') && !f.endsWith('.module.css'));
-const allWorkerFiles = [...sourceFiles, ...walk('workers', (f) => /\.(tsx?|jsx?)$/.test(f))];
 
 const grepFiles = (files, regex) => files.flatMap((f) => (regex.test(read(f)) ? [f] : []));
 
-if (isRR) {
-  const v7Context = grepFiles(allWorkerFiles, /context\.cloudflare\b|AppLoadContext|getLoadContext/);
-  if (v7Context.length) fail('No React Router v7 Cloudflare context patterns', v7Context.join(', '));
-  else pass('Typed v8 context (no context.cloudflare / AppLoadContext)');
-  for (const cfg of ['react-router.config.ts', 'react-router.config.js']) {
-    if (exists(cfg) && /\bv8_|unstable_/.test(read(cfg))) fail('No removed future flags', `${cfg} contains v8_/unstable_ flags`);
-  }
-}
+// Server-only modules reached from code that also runs in the browser (components, loaders)
+const serverOnlyImport = /^import\s+(?!type\b)[^;]*?from\s+['"](?:cloudflare:workers|[^'"]+\.server(?:\.tsx?)?)['"]/m;
+const leaks = sourceFiles.filter(
+  (f) => !/\.(server|functions)\.tsx?$/.test(f) && f !== `${SRC}/server.ts` && serverOnlyImport.test(read(f)) && !/createServerFn|server:\s*\{/.test(read(f)),
+);
+if (leaks.length) fail('Server-only code stays on the server', `${leaks.join(', ')}: import *.server.ts / cloudflare:workers only from server functions, server route handlers or other server modules`);
+else pass('Server-only code stays on the server');
 
-if (isStart) {
-  // Server-only modules reached from code that also runs in the browser (components, loaders)
-  const serverOnlyImport = /^import\s+(?!type\b)[^;]*?from\s+['"](?:cloudflare:workers|[^'"]+\.server(?:\.tsx?)?)['"]/m;
-  const leaks = sourceFiles.filter(
-    (f) => !/\.(server|functions)\.tsx?$/.test(f) && f !== `${SRC}/server.ts` && serverOnlyImport.test(read(f)) && !/createServerFn|server:\s*\{/.test(read(f)),
-  );
-  if (leaks.length) fail('Server-only code stays on the server', `${leaks.join(', ')}: import *.server.ts / cloudflare:workers only from server functions, server route handlers or other server modules`);
-  else pass('Server-only code stays on the server');
-
-  // Inline JSON-LD must be escaped: Start writes head script children verbatim
-  const rawJsonLd = sourceFiles.filter((f) => /application\/ld\+json/.test(read(f)) && /JSON\.stringify\(/.test(read(f)) && !/jsonForScript/.test(read(f)));
-  if (rawJsonLd.length) fail('JSON-LD is escaped for inline scripts', `${rawJsonLd.join(', ')}: build it with seo() / jsonForScript() (a "</script>" in any string ends the tag)`);
-}
+// Inline JSON-LD must be escaped: Start writes head script children verbatim
+const rawJsonLd = sourceFiles.filter((f) => /application\/ld\+json/.test(read(f)) && /JSON\.stringify\(/.test(read(f)) && !/jsonForScript/.test(read(f)));
+if (rawJsonLd.length) fail('JSON-LD is escaped for inline scripts', `${rawJsonLd.join(', ')}: build it with seo() / jsonForScript() (a "</script>" in any string ends the tag)`);
 
 // global stylesheet budget
 const globals = plainCss.filter((f) => !f.endsWith('tokens.css'));
@@ -257,7 +234,6 @@ if (lorem.length) fail('No lorem ipsum', lorem.join(', '));
 
 // routes: head/meta on UI routes; the URL paths the app serves
 const routeFiles = walk(`${SRC}/routes`, (f) => /\.(tsx?|jsx?)$/.test(f));
-const routesTs = exists('app/routes.ts') ? read('app/routes.ts') : '';
 /** TanStack file route → URL path: src/routes/_site/contact.tsx → /contact, sitemap[.]xml.ts → /sitemap.xml */
 function startRouteUrl(file) {
   const rel = relative(`${SRC}/routes`, file).replace(/\\/g, '/').replace(/\.(tsx?|jsx?)$/, '');
@@ -270,28 +246,17 @@ function startRouteUrl(file) {
     .map((seg) => seg.replace(/_$/, ''));
   return '/' + segments.join('/');
 }
-const startRoutes = isStart ? routeFiles.map((f) => ({ file: f, url: startRouteUrl(f) })).filter((r) => r.url) : [];
+const startRoutes = routeFiles.map((f) => ({ file: f, url: startRouteUrl(f) })).filter((r) => r.url);
 
-if (isStart) {
-  const missingHead = routeFiles.filter((f) => {
-    const t = read(f);
-    return /component:/.test(t) && !/<Outlet/.test(t) && !/__root/.test(f) && !/\bhead:/.test(t);
-  });
-  if (missingHead.length) warn('UI routes set head (title, description, canonical)', missingHead.join(', '));
-  else if (routeFiles.length) pass('UI routes set head');
-} else {
-  const missingMeta = routeFiles.filter((f) => {
-    const t = read(f);
-    const isUi = /export default function/.test(t);
-    const isLayout = /<Outlet/.test(t);
-    return isUi && !isLayout && !/export (const|function|async function) meta\b/.test(t);
-  });
-  if (missingMeta.length) warn('UI routes export meta (title, description, canonical)', missingMeta.join(', '));
-  else if (routeFiles.length) pass('UI routes export meta');
-}
+const missingHead = routeFiles.filter((f) => {
+  const t = read(f);
+  return /component:/.test(t) && !/<Outlet/.test(t) && !/__root/.test(f) && !/\bhead:/.test(t);
+});
+if (missingHead.length) warn('UI routes set head (title, description, canonical)', missingHead.join(', '));
+else if (routeFiles.length) pass('UI routes set head');
 
 // sitemap and robots
-const hasRoute = (url) => (isStart ? startRoutes.some((r) => r.url === url) : new RegExp(url.slice(1).replace('.', '\\.')).test(routesTs));
+const hasRoute = (url) => startRoutes.some((r) => r.url === url);
 if (!hasRoute('/sitemap.xml') && !exists('public/sitemap.xml')) fail('sitemap.xml', 'no sitemap route or file');
 else pass('sitemap.xml present');
 if (!hasRoute('/robots.txt') && !exists('public/robots.txt')) fail('robots.txt', 'no robots route or file');
@@ -305,7 +270,7 @@ else {
   if (!/compatibility_date/.test(w)) fail('Wrangler compatibility_date', wranglerFile);
   else pass('Wrangler config', wranglerFile);
   if (exists(`${BUILD}/index.html`) && !/html_handling/.test(w)) warn('Prerendered pages: assets.html_handling set', 'default redirects /about to /about/');
-  if (isStart && exists(`${SRC}/server.ts`) && /["']?main["']?\s*[:=]\s*["']@tanstack\/react-start\/server-entry["']/.test(w)) {
+  if (exists(`${SRC}/server.ts`) && /["']?main["']?\s*[:=]\s*["']@tanstack\/react-start\/server-entry["']/.test(w)) {
     fail('Worker entry is src/server.ts', `${wranglerFile} "main" points at @tanstack/react-start/server-entry, so src/server.ts (redirects, headers, noindex) never runs: set "main": "./src/server.ts"`);
   }
 }
@@ -335,9 +300,7 @@ if (!htmlFiles.length) warn('Prerendered HTML checks', `no ${BUILD}/*.html (run 
 const pagePath = (f) => '/' + relative(BUILD, f).replace(/\\/g, '/').replace(/(^|\/)index\.html$/, '').replace(/\.html$/, '');
 const prerenderedPaths = new Set(htmlFiles.map(pagePath));
 // Paths the app can serve: prerendered pages, static routes, prefixes of dynamic routes, public files
-const routeLiterals = isStart
-  ? startRoutes.map((r) => r.url.replace(/\/\$[^/]*/g, '/:param'))
-  : [...routesTs.matchAll(/(?:route|prefix)\(\s*['"]([^'"]*)['"]/g)].map((m) => '/' + m[1].replace(/^\//, ''));
+const routeLiterals = startRoutes.map((r) => r.url.replace(/\/\$[^/]*/g, '/:param'));
 const staticRoutes = new Set(['/', ...routeLiterals.filter((r) => !/[:*$]/.test(r))]);
 const dynamicPrefixes = routeLiterals.filter((r) => /[:*$]/.test(r)).map((r) => r.slice(0, r.search(/[:*$]/)));
 function knownPath(href) {
@@ -348,12 +311,10 @@ function knownPath(href) {
 }
 
 // Routes with a POST handler must never be prerendered (static paths answer POST with 405)
-if (isStart) {
-  const postRoutes = startRoutes.filter((r) => /server:\s*\{[\s\S]*\bPOST\b/.test(read(r.file)));
-  const staticPost = postRoutes.filter((r) => prerenderedPaths.has(r.url));
-  if (staticPost.length) fail('Routes with a POST handler are server-rendered', `${staticPost.map((r) => r.url).join(', ')} prerendered: remove from the prerender list (content/pages.ts) and keep autoStaticPathsDiscovery and crawlLinks off`);
-  else if (postRoutes.length && htmlFiles.length) pass('Routes with a POST handler are server-rendered');
-}
+const postRoutes = startRoutes.filter((r) => /server:\s*\{[\s\S]*\bPOST\b/.test(read(r.file)));
+const staticPost = postRoutes.filter((r) => prerenderedPaths.has(r.url));
+if (staticPost.length) fail('Routes with a POST handler are server-rendered', `${staticPost.map((r) => r.url).join(', ')} prerendered: remove from the prerender list (content/pages.ts) and keep autoStaticPathsDiscovery and crawlLinks off`);
+else if (postRoutes.length && htmlFiles.length) pass('Routes with a POST handler are server-rendered');
 
 for (const f of htmlFiles) {
   const html = read(f);

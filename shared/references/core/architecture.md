@@ -2,7 +2,7 @@
 
 How every new ngd project is built: the latest TanStack Start (React, file-based TanStack Router, server functions) with server rendering, deployed to Cloudflare Workers, styled with CSS Modules, organised so shared code lives in one place. Facts here were verified against TanStack Start 1.169 (`@tanstack/react-router` 1.170) and the Cloudflare tooling of November 2026. Versions move, so **check before you build** (section 1) and treat the agent skills shipped inside the installed packages (`node_modules/@tanstack/*/skills/`) as the version-matched API reference.
 
-**Existing project on React Router** (`react-router.config.ts`, `app/routes.ts`, `workers/app.ts`): keep it on React Router and read `architecture-react-router.md` instead. Don't migrate it unless the user asks.
+**Existing project on another framework** (React Router, Remix, Next.js…): ngd builds on TanStack Start only. Plan the migration to TanStack Start with the user before adding features (section 3).
 
 ## Contents
 1. Always the latest version
@@ -64,8 +64,7 @@ This runs the official TanStack Start template and adds the Cloudflare files: `w
 ## 3. Upgrade an existing project
 
 - **TanStack Start project:** update to the latest release (`npm i @tanstack/react-start@latest @tanstack/react-router@latest`), then build and typecheck. Read the package changelogs for anything marked breaking.
-- **React Router project** (v7 or v8): stay on React Router and follow `architecture-react-router.md` section 3. Moving it to TanStack Start is a rewrite of every route file, not a dependency bump: only on the user's request, as a planned migration (TanStack ships a guide in `node_modules/@tanstack/react-router/skills/lifecycle/migrate-from-react-router/`).
-- **Remix v2, React Router v6, Next.js or anything else:** plan the migration with the user first.
+- **Any other framework** (React Router, Remix, Next.js…): migrate it to TanStack Start, planned with the user first. It is a rewrite of every route file, not a dependency bump: keep the URLs, content, tokens and components, and port the routes, data loading, forms and server entry (TanStack ships a guide in `node_modules/@tanstack/react-router/skills/lifecycle/migrate-from-react-router/`).
 - Always tell the user before a major-version upgrade or a framework change, and run the full verification afterwards.
 
 ## 4. Project structure
@@ -362,7 +361,7 @@ Per indexed route on a mid-range phone over 4G:
 | Hero image | ≤ about 200 KB at mobile width |
 | HTML | well under 2 MB uncompressed (Googlebot's fetch limit) |
 
-Measure, don't guess: quality.md lists the commands. For reference, the starter's prerendered home page, served compressed, scores Performance 99, Accessibility 100 and SEO 100 with LCP 2.2 s and CLS 0 in Lighthouse mobile; React 19 + TanStack Start cost about 108 KB of gzipped JavaScript before any route code (React Router 8 costs the same).
+Measure, don't guess: quality.md lists the commands. For reference, the starter's prerendered home page, served compressed, scores Performance 99, Accessibility 100 and SEO 100 with LCP 2.2 s and CLS 0 in Lighthouse mobile; React 19 + TanStack Start cost about 108 KB of gzipped JavaScript before any route code.
 
 ## 16. Dependencies
 
@@ -400,7 +399,7 @@ TanStack Start moved fast on its way to 1.0, and many tutorials describe earlier
 - `getWebRequest()`, `getEvent()` and other h3-era helpers: use `getRequest()` and friends from `@tanstack/react-start/server`.
 - `process.env` for bindings or secrets on Workers: use `import { env } from 'cloudflare:workers'`.
 - `"main": "@tanstack/react-start/server-entry"` together with a custom `src/server.ts`: the template's value bypasses the custom entry; point `main` at the file.
-- React Router patterns (`loader` exports, `action`, `useFetcher`, `meta` exports, `routes.ts`): they belong to existing React Router projects (`architecture-react-router.md`).
+- React Router and Remix patterns (`loader`/`action`/`meta` exports, `useFetcher`, `routes.ts`): use `createFileRoute` with its `loader` and `head` options, server functions and server route handlers.
 
 ## 20. Troubleshooting
 
