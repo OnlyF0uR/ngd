@@ -396,7 +396,6 @@ TanStack Start moved fast on its way to 1.0, and many tutorials describe earlier
 - `getWebRequest()`, `getEvent()` and other h3-era helpers: use `getRequest()` and friends from `@tanstack/react-start/server`.
 - `process.env` for bindings or secrets on Workers: use `import { env } from 'cloudflare:workers'`.
 - `"main": "@tanstack/react-start/server-entry"` together with a custom `src/server.ts`: the template's value bypasses the custom entry; point `main` at the file.
-- React Router and Remix patterns (`loader`/`action`/`meta` exports, `useFetcher`, `routes.ts`): use `createFileRoute` with its `loader` and `head` options, server functions and server route handlers.
 
 ## 20. Troubleshooting
 
