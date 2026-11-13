@@ -78,7 +78,7 @@ function checkLatest(name, label, minMajor) {
 if (deps['@tanstack/react-start']) {
   pass('Framework', 'TanStack Start');
   checkLatest('@tanstack/react-start', 'TanStack Start', 1);
-} else fail('Framework', '@tanstack/react-start is not a dependency: ngd projects are TanStack Start (another framework is migrated first, architecture.md section 3)');
+} else fail('Framework', '@tanstack/react-start is not a dependency');
 for (const name of ['@tanstack/react-devtools', '@tanstack/react-router-devtools', '@tanstack/devtools-vite']) {
   if (deps[name]) warn('No devtools in the app', `${name}: remove it (the template's devtools ship in the client bundle)`);
 }
